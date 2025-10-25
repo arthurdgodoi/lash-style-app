@@ -134,8 +134,6 @@ const TopNav = () => {
 
   const navItems = [
     { path: "/", label: "Agenda", icon: Calendar },
-    { path: "/clientes", label: "Clientes", icon: Users },
-    { path: "/servicos", label: "Serviços", icon: Briefcase },
     { path: "/financeiro", label: "Financeiro", icon: DollarSign },
   ];
 
