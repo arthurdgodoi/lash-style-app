@@ -2,29 +2,50 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { CalendarIcon, Plus, Check } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { CalendarIcon, Plus, Check } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 import ClientDialog from "./ClientDialog";
 
 const appointmentSchema = z.object({
-  client_id: z.string().min(1, "Selecione um cliente"),
-  service_id: z.string().min(1, "Selecione um procedimento"),
+  client_id: z.string().min(1, { message: "Selecione um cliente" }),
+  service_id: z.string().min(1, { message: "Selecione um procedimento" }),
   appointment_date: z.date({ required_error: "Selecione uma data" }),
-  appointment_time: z.string().min(1, "Informe o horário"),
-  price: z.string().min(1, "Informe o valor"),
+  appointment_time: z.string().min(1, { message: "Digite o horário" }),
+  price: z.string().min(1, { message: "Digite o valor" }),
   notes: z.string().optional(),
 });
 
@@ -36,14 +57,19 @@ interface AppointmentDialogProps {
   onSuccess: () => void;
 }
 
-export function AppointmentDialog({ open, onOpenChange, onSuccess }: AppointmentDialogProps) {
+export const AppointmentDialog = ({
+  open,
+  onOpenChange,
+  onSuccess,
+}: AppointmentDialogProps) => {
+  const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [clients, setClients] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
-  const [searchClient, setSearchClient] = useState("");
-  const [clientDialogOpen, setClientDialogOpen] = useState(false);
-  const [selectedClientName, setSelectedClientName] = useState("");
-  const { toast } = useToast();
+  const [clientSearch, setClientSearch] = useState("");
+  const [clientOpen, setClientOpen] = useState(false);
+  const [showClientDialog, setShowClientDialog] = useState(false);
+  const [serviceOpen, setServiceOpen] = useState(false);
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentSchema),
@@ -63,21 +89,28 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
     }
   }, [open]);
 
-  const fetchClients = async () => {
+  useEffect(() => {
+    if (clientSearch) {
+      fetchClients(clientSearch);
+    }
+  }, [clientSearch]);
+
+  const fetchClients = async (search?: string) => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("clients")
         .select("*")
         .order("name");
 
+      if (search) {
+        query = query.ilike("name", `%${search}%`);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       setClients(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
+    } catch (error) {
+      console.error("Error fetching clients:", error);
     }
   };
 
@@ -91,12 +124,8 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
 
       if (error) throw error;
       setServices(data || []);
-    } catch (error: any) {
-      toast({
-        title: "Erro",
-        description: error.message,
-        variant: "destructive",
-      });
+    } catch (error) {
+      console.error("Error fetching services:", error);
     }
   };
 
@@ -105,7 +134,9 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
       setLoading(true);
 
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      if (!user) {
+        throw new Error("Usuário não autenticado");
+      }
 
       const { error } = await supabase.from("appointments").insert({
         user_id: user.id,
@@ -114,19 +145,17 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
         appointment_date: format(values.appointment_date, "yyyy-MM-dd"),
         appointment_time: values.appointment_time,
         price: parseFloat(values.price),
-        notes: values.notes,
-        status: "scheduled",
+        notes: values.notes || null,
       });
 
       if (error) throw error;
 
       toast({
-        title: "Sucesso",
-        description: "Agendamento criado com sucesso!",
+        title: "Sucesso!",
+        description: "Agendamento criado com sucesso.",
       });
 
       form.reset();
-      setSelectedClientName("");
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
@@ -140,14 +169,10 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
     }
   };
 
-  const handleClientCreated = () => {
+  const handleClientDialogSuccess = () => {
+    setShowClientDialog(false);
     fetchClients();
-    setClientDialogOpen(false);
   };
-
-  const filteredClients = clients.filter((client) =>
-    client.name.toLowerCase().includes(searchClient.toLowerCase())
-  );
 
   return (
     <>
@@ -165,8 +190,8 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Cliente</FormLabel>
-                    <Popover>
-                      <div className="flex gap-2">
+                    <div className="flex gap-2">
+                      <Popover open={clientOpen} onOpenChange={setClientOpen}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
@@ -177,69 +202,58 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
                                 !field.value && "text-muted-foreground"
                               )}
                             >
-                              {selectedClientName || "Selecione um cliente"}
+                              {field.value
+                                ? clients.find((client) => client.id === field.value)?.name
+                                : "Selecione um cliente"}
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          onClick={() => setClientDialogOpen(true)}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <PopoverContent className="w-full p-0" align="start">
-                        <Command>
-                          <CommandInput
-                            placeholder="Buscar cliente..."
-                            value={searchClient}
-                            onValueChange={setSearchClient}
-                          />
-                          <CommandEmpty>
-                            <div className="flex flex-col items-center gap-2 py-6 text-center">
-                              <p className="text-sm text-muted-foreground">
-                                Nenhum cliente encontrado
-                              </p>
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setClientDialogOpen(true);
-                                }}
-                              >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Cadastrar novo cliente
-                              </Button>
-                            </div>
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {filteredClients.map((client) => (
-                              <CommandItem
-                                key={client.id}
-                                value={client.name}
-                                onSelect={() => {
-                                  field.onChange(client.id);
-                                  setSelectedClientName(client.name);
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    client.id === field.value
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {client.name}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                        <PopoverContent className="w-[400px] p-0">
+                          <Command>
+                            <CommandInput
+                              placeholder="Buscar cliente..."
+                              value={clientSearch}
+                              onValueChange={setClientSearch}
+                            />
+                            <CommandList>
+                              <CommandEmpty>
+                                Nenhum cliente encontrado.
+                              </CommandEmpty>
+                              <CommandGroup>
+                                {clients.map((client) => (
+                                  <CommandItem
+                                    key={client.id}
+                                    value={client.name}
+                                    onSelect={() => {
+                                      form.setValue("client_id", client.id);
+                                      setClientOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        client.id === field.value
+                                          ? "opacity-100"
+                                          : "opacity-0"
+                                      )}
+                                    />
+                                    {client.name}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setShowClientDialog(true)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -262,7 +276,7 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
                             )}
                           >
                             {field.value ? (
-                              format(field.value, "PPP", { locale: ptBR })
+                              format(field.value, "dd/MM/yyyy")
                             ) : (
                               <span>Selecione uma data</span>
                             )}
@@ -293,7 +307,11 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
                   <FormItem>
                     <FormLabel>Horário</FormLabel>
                     <FormControl>
-                      <Input type="time" {...field} />
+                      <Input
+                        placeholder="Ex: 14:30"
+                        type="time"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -304,22 +322,68 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
                 control={form.control}
                 name="service_id"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Procedimento</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um procedimento" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {services.map((service) => (
-                          <SelectItem key={service.id} value={service.id}>
-                            {service.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={serviceOpen} onOpenChange={setServiceOpen}>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            className={cn(
+                              "w-full justify-between",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value
+                              ? services.find((service) => service.id === field.value)?.name
+                              : "Selecione um procedimento"}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-[400px] p-0">
+                        <Command>
+                          <CommandInput placeholder="Buscar procedimento..." />
+                          <CommandList>
+                            <CommandEmpty>
+                              Nenhum procedimento encontrado.
+                            </CommandEmpty>
+                            <CommandGroup>
+                              {services.map((service) => (
+                                <CommandItem
+                                  key={service.id}
+                                  value={service.name}
+                                  onSelect={() => {
+                                    form.setValue("service_id", service.id);
+                                    if (service.suggested_price) {
+                                      form.setValue("price", service.suggested_price.toString());
+                                    }
+                                    setServiceOpen(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      service.id === field.value
+                                        ? "opacity-100"
+                                        : "opacity-0"
+                                    )}
+                                  />
+                                  <div className="flex flex-col">
+                                    <span>{service.name}</span>
+                                    {service.suggested_price && (
+                                      <span className="text-xs text-muted-foreground">
+                                        R$ {service.suggested_price}
+                                      </span>
+                                    )}
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -332,7 +396,12 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
                   <FormItem>
                     <FormLabel>Valor</FormLabel>
                     <FormControl>
-                      <Input type="number" step="0.01" placeholder="0.00" {...field} />
+                      <Input
+                        placeholder="Ex: 150.00"
+                        type="number"
+                        step="0.01"
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -347,7 +416,7 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
                     <FormLabel>Observações (opcional)</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Ex: técnica utilizada, materiais específicos..."
+                        placeholder="Ex: técnica usada, materiais..."
                         {...field}
                       />
                     </FormControl>
@@ -356,7 +425,7 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
                 )}
               />
 
-              <div className="flex gap-3 justify-end">
+              <div className="flex gap-2 justify-end">
                 <Button
                   type="button"
                   variant="outline"
@@ -366,7 +435,7 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
                   Cancelar
                 </Button>
                 <Button type="submit" disabled={loading}>
-                  {loading ? "Salvando..." : "Salvar Agendamento"}
+                  {loading ? "Salvando..." : "Criar Agendamento"}
                 </Button>
               </div>
             </form>
@@ -375,10 +444,10 @@ export function AppointmentDialog({ open, onOpenChange, onSuccess }: Appointment
       </Dialog>
 
       <ClientDialog
-        open={clientDialogOpen}
-        onOpenChange={setClientDialogOpen}
-        onSuccess={handleClientCreated}
+        open={showClientDialog}
+        onOpenChange={setShowClientDialog}
+        onSuccess={handleClientDialogSuccess}
       />
     </>
   );
-}
+};

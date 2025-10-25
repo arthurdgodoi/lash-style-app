@@ -60,13 +60,19 @@ const Dashboard = () => {
       <TopNav />
 
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">
-            Olá, {profile?.full_name || "Lash Designer"}! 👋
-          </h2>
-          <p className="text-muted-foreground">
-            Bem-vindo ao seu painel de agendamentos
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-foreground mb-2">
+              Olá, {profile?.full_name || "Lash Designer"}! 👋
+            </h2>
+            <p className="text-muted-foreground">
+              Bem-vindo ao seu painel de agendamentos
+            </p>
+          </div>
+          <Button onClick={() => setAppointmentDialogOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Novo Agendamento
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
