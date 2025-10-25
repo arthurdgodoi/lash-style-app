@@ -21,8 +21,10 @@ export type Database = {
           client_id: string
           created_at: string
           id: string
+          include_salon_percentage: boolean
           notes: string | null
           price: number
+          salon_percentage: number | null
           service_id: string
           status: string
           updated_at: string
@@ -34,8 +36,10 @@ export type Database = {
           client_id: string
           created_at?: string
           id?: string
+          include_salon_percentage?: boolean
           notes?: string | null
           price: number
+          salon_percentage?: number | null
           service_id: string
           status?: string
           updated_at?: string
@@ -47,8 +51,10 @@ export type Database = {
           client_id?: string
           created_at?: string
           id?: string
+          include_salon_percentage?: boolean
           notes?: string | null
           price?: number
+          salon_percentage?: number | null
           service_id?: string
           status?: string
           updated_at?: string

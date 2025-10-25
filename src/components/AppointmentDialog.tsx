@@ -176,6 +176,10 @@ export const AppointmentDialog = ({
         appointment_date: format(values.appointment_date, "yyyy-MM-dd"),
         appointment_time: values.appointment_time,
         price: parseFloat(values.price),
+        include_salon_percentage: values.include_salon_percentage,
+        salon_percentage: values.include_salon_percentage && values.salon_percentage 
+          ? parseFloat(values.salon_percentage) 
+          : null,
         notes: values.notes || null,
       });
 
