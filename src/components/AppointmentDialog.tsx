@@ -21,6 +21,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -47,8 +49,21 @@ const appointmentSchema = z.object({
   appointment_date: z.date({ required_error: "Selecione uma data" }),
   appointment_time: z.string().min(1, { message: "Digite o horário" }),
   price: z.string().min(1, { message: "Digite o valor" }),
+  include_salon_percentage: z.boolean().default(false),
+  salon_percentage: z.string().optional(),
   notes: z.string().optional(),
-});
+}).refine(
+  (data) => {
+    if (data.include_salon_percentage) {
+      return data.salon_percentage && parseFloat(data.salon_percentage) > 0 && parseFloat(data.salon_percentage) <= 100;
+    }
+    return true;
+  },
+  {
+    message: "Digite uma porcentagem válida entre 0 e 100",
+    path: ["salon_percentage"],
+  }
+);
 
 type AppointmentFormValues = z.infer<typeof appointmentSchema>;
 
@@ -76,6 +91,7 @@ export const AppointmentDialog = ({
   const [showClientDialog, setShowClientDialog] = useState(false);
   const [serviceOpen, setServiceOpen] = useState(false);
   const [showServiceDialog, setShowServiceDialog] = useState(false);
+  const [includeSalonPercentage, setIncludeSalonPercentage] = useState(false);
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentSchema),
@@ -84,6 +100,8 @@ export const AppointmentDialog = ({
       service_id: "",
       appointment_time: "",
       price: "",
+      include_salon_percentage: false,
+      salon_percentage: "",
       notes: "",
     },
   });
@@ -92,6 +110,7 @@ export const AppointmentDialog = ({
     if (open) {
       fetchClients();
       fetchServices();
+      setIncludeSalonPercentage(false);
       if (defaultTime) {
         form.setValue("appointment_time", defaultTime);
       }
@@ -434,6 +453,53 @@ export const AppointmentDialog = ({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="include_salon_percentage"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Incluir porcentagem do salão</FormLabel>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          setIncludeSalonPercentage(checked);
+                          if (!checked) {
+                            form.setValue("salon_percentage", "");
+                          }
+                        }}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              {includeSalonPercentage && (
+                <FormField
+                  control={form.control}
+                  name="salon_percentage"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Porcentagem do Salão (%)</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Ex: 30"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="100"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               <FormField
                 control={form.control}
