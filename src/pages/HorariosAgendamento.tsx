@@ -180,7 +180,7 @@ const HorariosAgendamento = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background overflow-x-hidden">
       <TopNav />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-5xl">
