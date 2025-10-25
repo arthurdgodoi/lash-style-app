@@ -119,6 +119,20 @@ const AgendamentoPublico = () => {
     const service = services.find(s => s.id === formData.service_id);
     if (!service) return;
 
+    // Get configured booking time slots
+    const { data: configuredSlots } = await supabase
+      .from("booking_time_slots")
+      .select("time_slot")
+      .eq("user_id", professionalId)
+      .eq("is_active", true)
+      .order("time_slot");
+
+    // If no configured slots, return empty
+    if (!configuredSlots || configuredSlots.length === 0) {
+      setAvailableSlots([]);
+      return;
+    }
+
     // Get existing appointments for this date
     const { data: appointments } = await supabase
       .from("appointments")
@@ -126,48 +140,66 @@ const AgendamentoPublico = () => {
       .eq("user_id", professionalId)
       .eq("appointment_date", format(selectedDate, "yyyy-MM-dd"));
 
-    // Generate time slots
-    const slots: string[] = [];
-    const [startHour, startMinute] = workingDay.start_time.split(":").map(Number);
-    const [endHour, endMinute] = workingDay.end_time.split(":").map(Number);
+    // Get blocked slots for this date
+    const { data: blockedSlots } = await supabase
+      .from("blocked_slots")
+      .select("*")
+      .eq("user_id", professionalId)
+      .eq("blocked_date", format(selectedDate, "yyyy-MM-dd"));
 
-    let currentHour = startHour;
-    let currentMinute = startMinute;
-
-    while (currentHour < endHour || (currentHour === endHour && currentMinute < endMinute)) {
-      const timeSlot = `${String(currentHour).padStart(2, "0")}:${String(currentMinute).padStart(2, "0")}`;
-      
-      // Check if this slot conflicts with existing appointments
-      const hasConflict = appointments?.some(apt => {
-        const aptService = services.find(s => s.id === apt.service_id);
-        if (!aptService) return false;
-
-        const aptTime = apt.appointment_time;
-        const [aptHour, aptMinute] = aptTime.split(":").map(Number);
-        const aptEndMinutes = aptHour * 60 + aptMinute + aptService.duration_minutes;
-        const slotMinutes = currentHour * 60 + currentMinute;
-        const slotEndMinutes = slotMinutes + service.duration_minutes;
-
-        return (
-          (slotMinutes >= aptHour * 60 + aptMinute && slotMinutes < aptEndMinutes) ||
-          (slotEndMinutes > aptHour * 60 + aptMinute && slotEndMinutes <= aptEndMinutes) ||
-          (slotMinutes <= aptHour * 60 + aptMinute && slotEndMinutes >= aptEndMinutes)
-        );
-      });
-
-      if (!hasConflict) {
-        slots.push(timeSlot);
-      }
-
-      // Increment by 30 minutes
-      currentMinute += 30;
-      if (currentMinute >= 60) {
-        currentMinute -= 60;
-        currentHour += 1;
-      }
+    // Check if day is fully blocked
+    const isFullDayBlocked = blockedSlots?.some(slot => slot.is_full_day);
+    if (isFullDayBlocked) {
+      setAvailableSlots([]);
+      return;
     }
 
-    setAvailableSlots(slots);
+    // Filter configured slots based on working hours, appointments, and blocked slots
+    const availableSlots = configuredSlots
+      .map(slot => slot.time_slot.substring(0, 5))
+      .filter(timeSlot => {
+        const [slotHour, slotMinute] = timeSlot.split(":").map(Number);
+        const [startHour, startMinute] = workingDay.start_time.split(":").map(Number);
+        const [endHour, endMinute] = workingDay.end_time.split(":").map(Number);
+
+        // Check if slot is within working hours
+        const slotMinutes = slotHour * 60 + slotMinute;
+        const startMinutes = startHour * 60 + startMinute;
+        const endMinutes = endHour * 60 + endMinute;
+        
+        if (slotMinutes < startMinutes || slotMinutes >= endMinutes) {
+          return false;
+        }
+
+        // Check if slot is blocked
+        const isBlocked = blockedSlots?.some(slot => {
+          if (!slot.blocked_time) return false;
+          return slot.blocked_time.substring(0, 5) === timeSlot;
+        });
+
+        if (isBlocked) return false;
+
+        // Check if this slot conflicts with existing appointments
+        const hasConflict = appointments?.some(apt => {
+          const aptService = services.find(s => s.id === apt.service_id);
+          if (!aptService) return false;
+
+          const aptTime = apt.appointment_time;
+          const [aptHour, aptMinute] = aptTime.split(":").map(Number);
+          const aptEndMinutes = aptHour * 60 + aptMinute + aptService.duration_minutes;
+          const slotEndMinutes = slotMinutes + service.duration_minutes;
+
+          return (
+            (slotMinutes >= aptHour * 60 + aptMinute && slotMinutes < aptEndMinutes) ||
+            (slotEndMinutes > aptHour * 60 + aptMinute && slotEndMinutes <= aptEndMinutes) ||
+            (slotMinutes <= aptHour * 60 + aptMinute && slotEndMinutes >= aptEndMinutes)
+          );
+        });
+
+        return !hasConflict;
+      });
+
+    setAvailableSlots(availableSlots);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

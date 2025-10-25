@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Settings, Users, Briefcase, ChevronRight, Clock } from "lucide-react";
+import { Settings, Users, Briefcase, ChevronRight, Clock, Calendar } from "lucide-react";
 import TopNav from "@/components/TopNav";
 import { Button } from "@/components/ui/button";
 
@@ -115,6 +115,28 @@ const Configuracoes = () => {
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     Configure seus horários de trabalho
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+          </Card>
+
+          <Card 
+            className="p-6 border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 group"
+            onClick={() => navigate("/horarios-agendamento")}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
+                  <Calendar className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-foreground mb-1">
+                    Horários de Agendamento
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Defina os horários disponíveis para clientes
                   </p>
                 </div>
               </div>
