@@ -75,7 +75,33 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <Card className="p-8 border-border/50 shadow-lg mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-semibold text-foreground mb-1">
+                Agendamentos
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                Gerencie seus atendimentos
+              </p>
+            </div>
+            <Button onClick={() => setAppointmentDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Agendamento
+            </Button>
+          </div>
+
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+              <Calendar className="w-8 h-8 text-primary" />
+            </div>
+            <p className="text-muted-foreground">
+              Seus próximos agendamentos aparecerão aqui
+            </p>
+          </div>
+        </Card>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="p-6 border-border/50 shadow-lg">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-primary/10 rounded-xl">
@@ -112,32 +138,6 @@ const Dashboard = () => {
             </div>
           </Card>
         </div>
-
-        <Card className="p-8 border-border/50 shadow-lg">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-xl font-semibold text-foreground mb-1">
-                Agendamentos
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                Gerencie seus atendimentos
-              </p>
-            </div>
-            <Button onClick={() => setAppointmentDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Agendamento
-            </Button>
-          </div>
-
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-              <Calendar className="w-8 h-8 text-primary" />
-            </div>
-            <p className="text-muted-foreground">
-              Seus próximos agendamentos aparecerão aqui
-            </p>
-          </div>
-        </Card>
 
         <AppointmentDialog
           open={appointmentDialogOpen}
