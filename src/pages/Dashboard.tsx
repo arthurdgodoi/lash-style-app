@@ -172,14 +172,19 @@ const Dashboard = () => {
     return services.find(s => s.id === serviceId)?.name || "Serviço";
   };
 
-  const copyBookingLink = () => {
+  const copyBookingLink = async () => {
     if (!bookingSlug) {
       toast.error("Configure um link de agendamento primeiro");
       return;
     }
-    const link = `${window.location.origin}/agendar/${bookingSlug}`;
-    navigator.clipboard.writeText(link);
-    toast.success("Link copiado!");
+    try {
+      const link = `${window.location.origin}/agendar/${bookingSlug}`;
+      await navigator.clipboard.writeText(link);
+      toast.success("Link copiado!");
+    } catch (error) {
+      console.error("Erro ao copiar:", error);
+      toast.error("Erro ao copiar o link");
+    }
   };
 
   const handleCreateAppointmentAtTime = (time: string) => {

@@ -52,14 +52,19 @@ const Configuracoes = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const copyBookingLink = () => {
+  const copyBookingLink = async () => {
     if (!profile?.booking_slug) {
       toast.error("Configure um link de agendamento primeiro");
       return;
     }
-    const link = `${window.location.origin}/agendar/${profile.booking_slug}`;
-    navigator.clipboard.writeText(link);
-    toast.success("Link copiado!");
+    try {
+      const link = `${window.location.origin}/agendar/${profile.booking_slug}`;
+      await navigator.clipboard.writeText(link);
+      toast.success("Link copiado!");
+    } catch (error) {
+      console.error("Erro ao copiar:", error);
+      toast.error("Erro ao copiar o link");
+    }
   };
 
   if (!user) {
