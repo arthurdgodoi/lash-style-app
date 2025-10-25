@@ -131,8 +131,8 @@ const Dashboard = () => {
 
     fetchAppointments();
 
-    // Setup realtime subscription
-    const channel = supabase
+    // Setup realtime subscriptions for appointments and blocked_slots
+    const appointmentsChannel = supabase
       .channel('appointments-changes')
       .on(
         'postgres_changes',
@@ -148,8 +148,25 @@ const Dashboard = () => {
       )
       .subscribe();
 
+    const blockedSlotsChannel = supabase
+      .channel('blocked-slots-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'blocked_slots',
+          filter: `user_id=eq.${user?.id}`
+        },
+        () => {
+          fetchAppointments();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(appointmentsChannel);
+      supabase.removeChannel(blockedSlotsChannel);
     };
   }, [user, selectedDate]);
 
@@ -415,6 +432,8 @@ const Dashboard = () => {
           }}
           onSuccess={() => {
             setSelectedTimeForBlock("");
+            // Force immediate refresh
+            setSelectedDate(new Date(selectedDate));
           }}
           defaultTime={selectedTimeForBlock}
           defaultDate={selectedDate}
