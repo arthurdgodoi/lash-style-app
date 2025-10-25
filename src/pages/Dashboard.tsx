@@ -169,7 +169,10 @@ const Dashboard = () => {
             
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="gap-2">
+                <Button 
+                  variant="outline" 
+                  className="gap-2 hover:bg-accent hover:border-primary transition-all duration-200 cursor-pointer"
+                >
                   <CalendarIcon className="w-4 h-4" />
                   {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
                 </Button>
