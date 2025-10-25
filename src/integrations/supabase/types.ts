@@ -43,9 +43,11 @@ export type Database = {
           created_at: string
           duration_minutes: number
           id: string
+          include_salon_percentage: boolean
           is_active: boolean
           name: string
           price_mode: string
+          salon_percentage: number | null
           suggested_price: number | null
           updated_at: string
           user_id: string
@@ -54,9 +56,11 @@ export type Database = {
           created_at?: string
           duration_minutes: number
           id?: string
+          include_salon_percentage?: boolean
           is_active?: boolean
           name: string
           price_mode: string
+          salon_percentage?: number | null
           suggested_price?: number | null
           updated_at?: string
           user_id: string
@@ -65,9 +69,11 @@ export type Database = {
           created_at?: string
           duration_minutes?: number
           id?: string
+          include_salon_percentage?: boolean
           is_active?: boolean
           name?: string
           price_mode?: string
+          salon_percentage?: number | null
           suggested_price?: number | null
           updated_at?: string
           user_id?: string

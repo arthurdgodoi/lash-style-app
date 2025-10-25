@@ -35,8 +35,10 @@ const serviceSchema = z.object({
   price_mode: z.enum(["fixed", "free", "range"], {
     required_error: "Selecione um modo de preço",
   }),
-  suggested_price: z.coerce.number().optional().nullable(),
+  suggested_price: z.coerce.number().min(0.01, "Valor é obrigatório"),
   is_active: z.boolean().default(true),
+  include_salon_percentage: z.boolean().default(false),
+  salon_percentage: z.coerce.number().min(0).max(100).optional().nullable(),
 });
 
 type ServiceFormValues = z.infer<typeof serviceSchema>;
@@ -58,10 +60,14 @@ const ServiceDialog = ({ open, onOpenChange, onSuccess, service }: ServiceDialog
       name: "",
       duration_minutes: 90,
       price_mode: "fixed",
-      suggested_price: null,
+      suggested_price: 0,
       is_active: true,
+      include_salon_percentage: false,
+      salon_percentage: null,
     },
   });
+
+  const includeSalonPercentage = form.watch("include_salon_percentage");
 
   const onSubmit = async (data: ServiceFormValues) => {
     setLoading(true);
@@ -83,7 +89,9 @@ const ServiceDialog = ({ open, onOpenChange, onSuccess, service }: ServiceDialog
         price_mode: data.price_mode,
         is_active: data.is_active,
         user_id: user.id,
-        suggested_price: data.suggested_price || null,
+        suggested_price: data.suggested_price,
+        include_salon_percentage: data.include_salon_percentage,
+        salon_percentage: data.include_salon_percentage ? data.salon_percentage : null,
       };
 
       if (service?.id) {
@@ -190,12 +198,12 @@ const ServiceDialog = ({ open, onOpenChange, onSuccess, service }: ServiceDialog
               name="suggested_price"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Valor Sugerido (opcional)</FormLabel>
+                  <FormLabel>Valor *</FormLabel>
                   <FormControl>
                     <Input 
                       type="number" 
                       step="0.01"
-                      placeholder="50" 
+                      placeholder="50.00" 
                       {...field} 
                       value={field.value ?? ""}
                     />
@@ -204,6 +212,46 @@ const ServiceDialog = ({ open, onOpenChange, onSuccess, service }: ServiceDialog
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="include_salon_percentage"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                  <FormLabel className="mb-0">Incluir Porcentagem do salão</FormLabel>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            {includeSalonPercentage && (
+              <FormField
+                control={form.control}
+                name="salon_percentage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Porcentagem do salão (%)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        step="0.01"
+                        min="0"
+                        max="100"
+                        placeholder="30" 
+                        {...field} 
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <FormField
               control={form.control}

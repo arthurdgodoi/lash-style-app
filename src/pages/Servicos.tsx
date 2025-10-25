@@ -182,10 +182,15 @@ const Servicos = () => {
 
                 {service.suggested_price && (
                   <div className="mb-4">
-                    <p className="text-sm text-muted-foreground">Valor sugerido:</p>
+                    <p className="text-sm text-muted-foreground">Valor:</p>
                     <p className="text-xl font-bold text-foreground">
                       R$ {Number(service.suggested_price).toFixed(2)}
                     </p>
+                    {service.include_salon_percentage && service.salon_percentage && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Porcentagem do salão: {Number(service.salon_percentage).toFixed(2)}%
+                      </p>
+                    )}
                   </div>
                 )}
 
