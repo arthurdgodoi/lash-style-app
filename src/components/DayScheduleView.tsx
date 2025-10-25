@@ -172,28 +172,14 @@ export const DayScheduleView = ({
         </Card>
       ) : isFullDayBlocked ? (
         <Card className="p-4 border-destructive/50 bg-destructive/5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Ban className="w-5 h-5 text-destructive" />
-              <div>
-                <p className="font-medium text-foreground">Agenda bloqueada</p>
-                <p className="text-sm text-muted-foreground">
-                  {blockedSlots.find(s => s.is_full_day)?.reason || "Sem agendamentos neste dia"}
-                </p>
-              </div>
+          <div className="flex items-center gap-3">
+            <Ban className="w-5 h-5 text-destructive" />
+            <div>
+              <p className="font-medium text-foreground">Agenda bloqueada</p>
+              <p className="text-sm text-muted-foreground">
+                {blockedSlots.find(s => s.is_full_day)?.reason || "Sem agendamentos neste dia"}
+              </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const fullDayBlock = blockedSlots.find(s => s.is_full_day);
-                if (fullDayBlock) handleUnblock(fullDayBlock.id);
-              }}
-              className="gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              Desbloquear Agenda
-            </Button>
           </div>
         </Card>
       ) : null}
