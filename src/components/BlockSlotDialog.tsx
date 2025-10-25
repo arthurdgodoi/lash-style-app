@@ -23,7 +23,15 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const blockSlotSchema = z.object({
   blocked_time: z.string().optional(),
@@ -49,6 +57,7 @@ export const BlockSlotDialog = ({
   defaultTime,
 }: BlockSlotDialogProps) => {
   const [loading, setLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(defaultDate);
 
   const form = useForm<BlockSlotFormValues>({
     resolver: zodResolver(blockSlotSchema),
@@ -72,7 +81,7 @@ export const BlockSlotDialog = ({
 
       const { error } = await supabase.from("blocked_slots").insert({
         user_id: user.id,
-        blocked_date: format(defaultDate, "yyyy-MM-dd"),
+        blocked_date: format(selectedDate, "yyyy-MM-dd"),
         blocked_time: values.is_full_day ? null : values.blocked_time || null,
         is_full_day: values.is_full_day,
         reason: values.reason || null,
@@ -105,10 +114,31 @@ export const BlockSlotDialog = ({
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm font-medium text-foreground">
-                Data: {format(defaultDate, "dd/MM/yyyy")}
-              </p>
+            <div className="space-y-2">
+              <Label>Data</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "dd/MM/yyyy") : <span>Selecione uma data</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => date && setSelectedDate(date)}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
               {defaultTime && !isFullDay && (
                 <p className="text-sm text-muted-foreground">
                   Horário: {defaultTime}
