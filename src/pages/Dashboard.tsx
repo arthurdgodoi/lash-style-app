@@ -198,84 +198,6 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        {/* Booking Link Section */}
-        <Card className="p-6 border-border/50 shadow-lg mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Link2 className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">Link de Agendamento</h3>
-                <p className="text-sm text-muted-foreground">
-                  Compartilhe com seus clientes para agendamentos automáticos
-                </p>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowBookingSettings(!showBookingSettings)}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Configurar
-            </Button>
-          </div>
-
-          {showBookingSettings ? (
-            <div className="space-y-4 mt-4 p-4 bg-muted/30 rounded-lg">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="booking-enabled">Agendamentos Habilitados</Label>
-                <Switch
-                  id="booking-enabled"
-                  checked={bookingEnabled}
-                  onCheckedChange={setBookingEnabled}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="booking-slug">Link Personalizado</Label>
-                <div className="flex gap-2 mt-2">
-                  <span className="inline-flex items-center px-3 bg-muted rounded-l-md text-sm text-muted-foreground">
-                    {window.location.origin}/agendar/
-                  </span>
-                  <Input
-                    id="booking-slug"
-                    value={bookingSlug}
-                    onChange={(e) => setBookingSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                    placeholder="seu-link"
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowBookingSettings(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleSaveBookingSettings}>
-                  Salvar
-                </Button>
-              </div>
-            </div>
-          ) : bookingEnabled && bookingSlug ? (
-            <div className="flex items-center gap-2 mt-4 p-3 bg-muted/30 rounded-lg">
-              <Input
-                value={`${window.location.origin}/agendar/${bookingSlug}`}
-                readOnly
-                className="flex-1"
-              />
-              <Button onClick={copyBookingLink} variant="outline" size="icon">
-                <Copy className="w-4 h-4" />
-              </Button>
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground mt-4">
-              Configure um link para começar a receber agendamentos online
-            </p>
-          )}
-        </Card>
-
         <Card className="p-8 border-border/50 shadow-lg mb-8">
           <div className="mb-6 flex items-center justify-between">
             <div>
@@ -396,6 +318,84 @@ const Dashboard = () => {
             </div>
           </Card>
         </div>
+
+        {/* Booking Link Section */}
+        <Card className="p-6 border-border/50 shadow-lg mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-primary/10 rounded-lg">
+                <Link2 className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Link de Agendamento</h3>
+                <p className="text-sm text-muted-foreground">
+                  Compartilhe com seus clientes para agendamentos automáticos
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowBookingSettings(!showBookingSettings)}
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Configurar
+            </Button>
+          </div>
+
+          {showBookingSettings ? (
+            <div className="space-y-4 mt-4 p-4 bg-muted/30 rounded-lg">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="booking-enabled">Agendamentos Habilitados</Label>
+                <Switch
+                  id="booking-enabled"
+                  checked={bookingEnabled}
+                  onCheckedChange={setBookingEnabled}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="booking-slug">Link Personalizado</Label>
+                <div className="flex gap-2 mt-2">
+                  <span className="inline-flex items-center px-3 bg-muted rounded-l-md text-sm text-muted-foreground">
+                    {window.location.origin}/agendar/
+                  </span>
+                  <Input
+                    id="booking-slug"
+                    value={bookingSlug}
+                    onChange={(e) => setBookingSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
+                    placeholder="seu-link"
+                    className="flex-1"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" onClick={() => setShowBookingSettings(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleSaveBookingSettings}>
+                  Salvar
+                </Button>
+              </div>
+            </div>
+          ) : bookingEnabled && bookingSlug ? (
+            <div className="flex items-center gap-2 mt-4 p-3 bg-muted/30 rounded-lg">
+              <Input
+                value={`${window.location.origin}/agendar/${bookingSlug}`}
+                readOnly
+                className="flex-1"
+              />
+              <Button onClick={copyBookingLink} variant="outline" size="icon">
+                <Copy className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground mt-4">
+              Configure um link para começar a receber agendamentos online
+            </p>
+          )}
+        </Card>
 
         <AppointmentDialog
           open={appointmentDialogOpen}
