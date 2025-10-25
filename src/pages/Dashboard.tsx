@@ -3,10 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Calendar as CalendarIcon, Users, Clock, Plus, Link2, Copy, Settings } from "lucide-react";
+import { Calendar as CalendarIcon, Users, Clock, Plus, Link2, Copy } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import TopNav from "@/components/TopNav";
@@ -28,8 +25,6 @@ const Dashboard = () => {
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [bookingSlug, setBookingSlug] = useState("");
-  const [bookingEnabled, setBookingEnabled] = useState(false);
-  const [showBookingSettings, setShowBookingSettings] = useState(false);
   const [workingHours, setWorkingHours] = useState<any>(null);
   const [selectedTimeForAppointment, setSelectedTimeForAppointment] = useState<string>("");
   const [blockSlotDialogOpen, setBlockSlotDialogOpen] = useState(false);
@@ -59,7 +54,6 @@ const Dashboard = () => {
       if (profileData) {
         setProfile(profileData);
         setBookingSlug(profileData.booking_slug || "");
-        setBookingEnabled(profileData.booking_enabled || false);
       }
     };
 
@@ -176,28 +170,6 @@ const Dashboard = () => {
 
   const getServiceName = (serviceId: string) => {
     return services.find(s => s.id === serviceId)?.name || "Serviço";
-  };
-
-  const handleSaveBookingSettings = async () => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          booking_slug: bookingSlug || null,
-          booking_enabled: bookingEnabled,
-        })
-        .eq("id", user.id);
-
-      if (error) throw error;
-
-      toast.success("Configurações de agendamento salvas!");
-      setShowBookingSettings(false);
-    } catch (error) {
-      console.error("Error saving booking settings:", error);
-      toast.error("Erro ao salvar configurações");
-    }
   };
 
   const copyBookingLink = () => {
@@ -334,7 +306,7 @@ const Dashboard = () => {
 
         {/* Booking Link Section */}
         <Card className="p-4 sm:p-6 border-border/50 shadow-lg mt-6">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-primary/10 rounded-lg">
                 <Link2 className="w-5 h-5 text-primary" />
@@ -346,66 +318,17 @@ const Dashboard = () => {
                 </p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowBookingSettings(!showBookingSettings)}
-            >
-              <Settings className="w-4 h-4 mr-2" />
-              Configurar
-            </Button>
+            {bookingSlug && (
+              <Button onClick={copyBookingLink} variant="outline" className="gap-2">
+                <Copy className="w-4 h-4" />
+                Copiar Link
+              </Button>
+            )}
           </div>
 
-          {showBookingSettings ? (
-            <div className="space-y-4 mt-4 p-4 bg-muted/30 rounded-lg">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="booking-enabled">Agendamentos Habilitados</Label>
-                <Switch
-                  id="booking-enabled"
-                  checked={bookingEnabled}
-                  onCheckedChange={setBookingEnabled}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="booking-slug">Link Personalizado</Label>
-                <div className="flex gap-2 mt-2">
-                  <span className="inline-flex items-center px-3 bg-muted rounded-l-md text-sm text-muted-foreground">
-                    {window.location.origin}/agendar/
-                  </span>
-                  <Input
-                    id="booking-slug"
-                    value={bookingSlug}
-                    onChange={(e) => setBookingSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                    placeholder="seu-link"
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-
-              <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowBookingSettings(false)}>
-                  Cancelar
-                </Button>
-                <Button onClick={handleSaveBookingSettings}>
-                  Salvar
-                </Button>
-              </div>
-            </div>
-          ) : bookingEnabled && bookingSlug ? (
-            <div className="flex items-center gap-2 mt-4 p-3 bg-muted/30 rounded-lg">
-              <Input
-                value={`${window.location.origin}/agendar/${bookingSlug}`}
-                readOnly
-                className="flex-1"
-              />
-              <Button onClick={copyBookingLink} variant="outline" size="icon">
-                <Copy className="w-4 h-4" />
-              </Button>
-            </div>
-          ) : (
+          {!bookingSlug && (
             <p className="text-sm text-muted-foreground mt-4">
-              Configure um link para começar a receber agendamentos online
+              Configure um link em Horários de Agendamento via link
             </p>
           )}
         </Card>

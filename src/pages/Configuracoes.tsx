@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Settings, Users, Briefcase, ChevronRight, Clock, Calendar } from "lucide-react";
+import { Settings, Users, Briefcase, ChevronRight, Clock, Calendar, Link2, Copy } from "lucide-react";
 import TopNav from "@/components/TopNav";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const Configuracoes = () => {
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,6 +24,17 @@ const Configuracoes = () => {
       }
 
       setUser(session.user);
+
+      // Fetch profile
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profileData) {
+        setProfile(profileData);
+      }
     };
 
     checkUser();
@@ -38,6 +51,16 @@ const Configuracoes = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const copyBookingLink = () => {
+    if (!profile?.booking_slug) {
+      toast.error("Configure um link de agendamento primeiro");
+      return;
+    }
+    const link = `${window.location.origin}/agendar/${profile.booking_slug}`;
+    navigator.clipboard.writeText(link);
+    toast.success("Link copiado!");
+  };
 
   if (!user) {
     return null;
@@ -144,6 +167,35 @@ const Configuracoes = () => {
             </div>
           </Card>
         </div>
+
+        {/* Booking Link Section */}
+        <Card className="p-6 border-border/50 shadow-lg mt-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-primary/10 rounded-lg">
+                <Link2 className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-foreground">Link de Agendamento</h3>
+                <p className="text-sm text-muted-foreground">
+                  Compartilhe com seus clientes para agendamentos automáticos
+                </p>
+              </div>
+            </div>
+            {profile?.booking_slug && (
+              <Button onClick={copyBookingLink} variant="outline" className="gap-2">
+                <Copy className="w-4 h-4" />
+                Copiar Link
+              </Button>
+            )}
+          </div>
+
+          {!profile?.booking_slug && (
+            <p className="text-sm text-muted-foreground mt-4">
+              Configure um link em Horários de Agendamento via link
+            </p>
+          )}
+        </Card>
 
         <Card className="p-8 border-border/50 shadow-lg mt-8">
           <div className="max-w-md mx-auto text-center">
