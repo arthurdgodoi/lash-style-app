@@ -66,7 +66,7 @@ const TopNav = () => {
           </Button>
         </div>
 
-        <nav className="md:hidden flex items-center gap-2 mt-4 overflow-x-auto pb-2">
+        <nav className="md:hidden grid grid-cols-2 gap-2 mt-4">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.path;
@@ -76,7 +76,7 @@ const TopNav = () => {
                   variant={isActive ? "default" : "ghost"}
                   size="sm"
                   className={cn(
-                    "gap-2 whitespace-nowrap",
+                    "gap-2 w-full",
                     isActive && "shadow-sm"
                   )}
                 >
