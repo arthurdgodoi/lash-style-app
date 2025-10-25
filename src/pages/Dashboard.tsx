@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Calendar as CalendarIcon, Users, Clock, Plus, Link2, Copy, Settings, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar as CalendarIcon, Users, Clock, Plus, Link2, Copy, Settings } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import TopNav from "@/components/TopNav";
 import { AppointmentDialog } from "@/components/AppointmentDialog";
 import { BlockSlotDialog } from "@/components/BlockSlotDialog";
 import { DayScheduleView } from "@/components/DayScheduleView";
-import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -34,7 +34,6 @@ const Dashboard = () => {
   const [selectedTimeForAppointment, setSelectedTimeForAppointment] = useState<string>("");
   const [blockSlotDialogOpen, setBlockSlotDialogOpen] = useState(false);
   const [selectedTimeForBlock, setSelectedTimeForBlock] = useState<string>("");
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -204,10 +203,6 @@ const Dashboard = () => {
     setBlockSlotDialogOpen(true);
   };
 
-  const handleMonthChange = (direction: 'prev' | 'next') => {
-    setCurrentMonth(prev => direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1));
-  };
-
   if (!user) {
     return null;
   }
@@ -241,51 +236,27 @@ const Dashboard = () => {
               </p>
             </div>
             
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleMonthChange('prev')}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="gap-2 hover:bg-accent hover:border-primary transition-all duration-200 cursor-pointer"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <CalendarIcon className="w-4 h-4" />
+                  {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
                 </Button>
-                <span className="text-sm font-medium min-w-[140px] text-center">
-                  {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
-                </span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleMonthChange('next')}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    className="gap-2 hover:bg-accent hover:border-primary transition-all duration-200 cursor-pointer"
-                  >
-                    <CalendarIcon className="w-4 h-4" />
-                    {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => date && setSelectedDate(date)}
-                    month={currentMonth}
-                    onMonthChange={setCurrentMonth}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                    locale={ptBR}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => date && setSelectedDate(date)}
+                  initialFocus
+                  className={cn("p-3 pointer-events-auto")}
+                  locale={ptBR}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           {loading ? (
