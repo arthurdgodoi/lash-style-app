@@ -56,87 +56,78 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-primary/5 to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
       <TopNav />
 
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-10 animate-fade-in">
-          <div className="flex items-start justify-between mb-3">
-            <div>
-              <h2 className="text-4xl font-bold text-foreground mb-2 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
-                Olá, {profile?.full_name || "Lash Designer"}!
-              </h2>
-              <p className="text-muted-foreground text-lg">
-                Bem-vindo ao seu painel de agendamentos
-              </p>
-            </div>
-            <Button 
-              onClick={() => setAppointmentDialogOpen(true)} 
-              className="gap-2 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-              size="lg"
-            >
-              <Plus className="w-5 h-5" />
+        <div className="mb-8">
+          <div className="flex items-start justify-between mb-2">
+            <h2 className="text-3xl font-bold text-foreground">
+              Olá, {profile?.full_name || "Lash Designer"}!
+            </h2>
+            <Button onClick={() => setAppointmentDialogOpen(true)} className="gap-2">
+              <Plus className="w-4 h-4" />
               Novo Agendamento
             </Button>
           </div>
+          <p className="text-muted-foreground">
+            Bem-vindo ao seu painel de agendamentos
+          </p>
         </div>
 
-        <Card className="p-8 border-border/50 shadow-xl hover:shadow-2xl transition-all duration-300 mb-8 animate-fade-in bg-gradient-to-br from-card to-card/80 backdrop-blur">
+        <Card className="p-8 border-border/50 shadow-lg mb-8">
           <div className="mb-6">
-            <h3 className="text-2xl font-semibold text-foreground mb-2">
+            <h3 className="text-xl font-semibold text-foreground mb-1">
               Agendamentos
             </h3>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-sm">
               Gerencie seus atendimentos
             </p>
           </div>
 
-          <div className="text-center py-16">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl mb-6 shadow-inner">
-              <Calendar className="w-10 h-10 text-primary" />
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+              <Calendar className="w-8 h-8 text-primary" />
             </div>
-            <p className="text-muted-foreground text-lg mb-2">
-              Nenhum agendamento ainda
-            </p>
-            <p className="text-muted-foreground/70 text-sm">
+            <p className="text-muted-foreground">
               Seus próximos agendamentos aparecerão aqui
             </p>
           </div>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in-delay">
-          <Card className="p-6 border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer bg-gradient-to-br from-card to-card/90">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="p-6 border-border/50 shadow-lg">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl shadow-sm">
-                <Calendar className="w-7 h-7 text-primary" />
+              <div className="p-3 bg-primary/10 rounded-xl">
+                <Calendar className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground font-medium mb-1">Hoje</p>
-                <h3 className="text-3xl font-bold text-foreground">0</h3>
+                <p className="text-sm text-muted-foreground">Hoje</p>
+                <h3 className="text-2xl font-bold text-foreground">0</h3>
               </div>
             </div>
           </Card>
 
-          <Card className="p-6 border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer bg-gradient-to-br from-card to-card/90">
+          <Card className="p-6 border-border/50 shadow-lg">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-accent/20 to-accent/10 rounded-2xl shadow-sm">
-                <Users className="w-7 h-7 text-accent" />
+              <div className="p-3 bg-primary/10 rounded-xl">
+                <Users className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground font-medium mb-1">Clientes</p>
-                <h3 className="text-3xl font-bold text-foreground">0</h3>
+                <p className="text-sm text-muted-foreground">Clientes</p>
+                <h3 className="text-2xl font-bold text-foreground">0</h3>
               </div>
             </div>
           </Card>
 
-          <Card className="p-6 border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer bg-gradient-to-br from-card to-card/90">
+          <Card className="p-6 border-border/50 shadow-lg">
             <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl shadow-sm">
-                <Clock className="w-7 h-7 text-primary" />
+              <div className="p-3 bg-primary/10 rounded-xl">
+                <Clock className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground font-medium mb-1">Esta Semana</p>
-                <h3 className="text-3xl font-bold text-foreground">0</h3>
+                <p className="text-sm text-muted-foreground">Esta Semana</p>
+                <h3 className="text-2xl font-bold text-foreground">0</h3>
               </div>
             </div>
           </Card>
