@@ -2,36 +2,44 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Calendar, Users, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Calendar, Users, Clock, Plus } from "lucide-react";
 import TopNav from "@/components/TopNav";
+import { AppointmentDialog } from "@/components/AppointmentDialog";
+
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
   const navigate = useNavigate();
+
   useEffect(() => {
     const checkUser = async () => {
       const {
-        data: {
-          session
-        }
+        data: { session },
       } = await supabase.auth.getSession();
+
       if (!session) {
         navigate("/auth");
         return;
       }
+
       setUser(session.user);
 
       // Fetch profile
-      const {
-        data: profileData
-      } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
       setProfile(profileData);
     };
+
     checkUser();
+
     const {
-      data: {
-        subscription
-      }
+      data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         navigate("/auth");
@@ -39,28 +47,38 @@ const Dashboard = () => {
         setUser(session.user);
       }
     });
+
     return () => subscription.unsubscribe();
   }, [navigate]);
+
   if (!user) {
     return null;
   }
-  return <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
       <TopNav />
 
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">
-            Olá, {profile?.full_name || "Lash Designer"}! 👋
-          </h2>
-          <p className="text-muted-foreground">
-            Bem-vindo ao seu painel de agendamentos
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h2 className="text-3xl font-bold text-foreground mb-2">
+              Olá, {profile?.full_name || "Lash Designer"}! 👋
+            </h2>
+            <p className="text-muted-foreground">
+              Bem-vindo ao seu painel de agendamentos
+            </p>
+          </div>
+          <Button onClick={() => setAppointmentDialogOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Novo Agendamento
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <Card className="p-6 border-border/50 shadow-lg">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-xl mx-0">
+              <div className="p-3 bg-primary/10 rounded-xl">
                 <Calendar className="w-6 h-6 text-primary" />
               </div>
               <div>
@@ -95,21 +113,42 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        <Card className="p-8 border-border/50 shadow-lg text-center">
-          <div className="max-w-md mx-auto">
+        <Card className="p-8 border-border/50 shadow-lg">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-semibold text-foreground mb-1">
+                Agendamentos
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                Gerencie seus atendimentos
+              </p>
+            </div>
+            <Button onClick={() => setAppointmentDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Agendamento
+            </Button>
+          </div>
+
+          <div className="text-center py-12">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
               <Calendar className="w-8 h-8 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">
-              Sistema de Agendamentos
-            </h3>
             <p className="text-muted-foreground">
-              Em breve você poderá gerenciar todos os seus agendamentos de forma elegante e
-              profissional.
+              Seus próximos agendamentos aparecerão aqui
             </p>
           </div>
         </Card>
+
+        <AppointmentDialog
+          open={appointmentDialogOpen}
+          onOpenChange={setAppointmentDialogOpen}
+          onSuccess={() => {
+            // Aqui você pode adicionar lógica para atualizar a lista de agendamentos
+          }}
+        />
       </main>
-    </div>;
+    </div>
+  );
 };
+
 export default Dashboard;
