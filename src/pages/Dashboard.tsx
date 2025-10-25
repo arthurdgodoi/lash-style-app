@@ -240,7 +240,7 @@ const Dashboard = () => {
           <Card className="p-6 border-border/50 shadow-lg">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-primary/10 rounded-xl">
-                <Calendar className="w-6 h-6 text-primary" />
+                <CalendarIcon className="w-6 h-6 text-primary" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Hoje</p>
