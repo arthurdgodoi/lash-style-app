@@ -6,13 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Calendar as CalendarIcon, Users, Clock, Plus, Link2, Copy, Settings } from "lucide-react";
+import { Calendar as CalendarIcon, Users, Clock, Plus, Link2, Copy, Settings, ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import TopNav from "@/components/TopNav";
 import { AppointmentDialog } from "@/components/AppointmentDialog";
+import { BlockSlotDialog } from "@/components/BlockSlotDialog";
 import { DayScheduleView } from "@/components/DayScheduleView";
-import { format } from "date-fns";
+import { format, addMonths, subMonths, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -31,6 +32,9 @@ const Dashboard = () => {
   const [showBookingSettings, setShowBookingSettings] = useState(false);
   const [workingHours, setWorkingHours] = useState<any>(null);
   const [selectedTimeForAppointment, setSelectedTimeForAppointment] = useState<string>("");
+  const [blockSlotDialogOpen, setBlockSlotDialogOpen] = useState(false);
+  const [selectedTimeForBlock, setSelectedTimeForBlock] = useState<string>("");
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -195,6 +199,15 @@ const Dashboard = () => {
     setAppointmentDialogOpen(true);
   };
 
+  const handleBlockSlot = (time?: string) => {
+    setSelectedTimeForBlock(time || "");
+    setBlockSlotDialogOpen(true);
+  };
+
+  const handleMonthChange = (direction: 'prev' | 'next') => {
+    setCurrentMonth(prev => direction === 'prev' ? subMonths(prev, 1) : addMonths(prev, 1));
+  };
+
   if (!user) {
     return null;
   }
@@ -218,7 +231,7 @@ const Dashboard = () => {
         </div>
 
         <Card className="p-8 border-border/50 shadow-lg mb-8">
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h3 className="text-xl font-semibold text-foreground mb-1">
                 Agendamentos
@@ -228,27 +241,51 @@ const Dashboard = () => {
               </p>
             </div>
             
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="gap-2 hover:bg-accent hover:border-primary transition-all duration-200 cursor-pointer"
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleMonthChange('prev')}
                 >
-                  <CalendarIcon className="w-4 h-4" />
-                  {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
+                  <ChevronLeft className="w-4 h-4" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => date && setSelectedDate(date)}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                  locale={ptBR}
-                />
-              </PopoverContent>
-            </Popover>
+                <span className="text-sm font-medium min-w-[140px] text-center">
+                  {format(currentMonth, "MMMM yyyy", { locale: ptBR })}
+                </span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => handleMonthChange('next')}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="gap-2 hover:bg-accent hover:border-primary transition-all duration-200 cursor-pointer"
+                  >
+                    <CalendarIcon className="w-4 h-4" />
+                    {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => date && setSelectedDate(date)}
+                    month={currentMonth}
+                    onMonthChange={setCurrentMonth}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                    locale={ptBR}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
 
           {loading ? (
@@ -261,8 +298,10 @@ const Dashboard = () => {
               appointments={appointments}
               workingHours={workingHours}
               onCreateAppointment={handleCreateAppointmentAtTime}
+              onBlockSlot={handleBlockSlot}
               getClientName={getClientName}
               getServiceName={getServiceName}
+              userId={user.id}
             />
           )}
         </Card>
@@ -394,6 +433,19 @@ const Dashboard = () => {
             setSelectedTimeForAppointment("");
           }}
           defaultTime={selectedTimeForAppointment}
+          defaultDate={selectedDate}
+        />
+
+        <BlockSlotDialog
+          open={blockSlotDialogOpen}
+          onOpenChange={(open) => {
+            setBlockSlotDialogOpen(open);
+            if (!open) setSelectedTimeForBlock("");
+          }}
+          onSuccess={() => {
+            setSelectedTimeForBlock("");
+          }}
+          defaultTime={selectedTimeForBlock}
           defaultDate={selectedDate}
         />
       </main>

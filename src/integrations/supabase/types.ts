@@ -71,6 +71,39 @@ export type Database = {
           },
         ]
       }
+      blocked_slots: {
+        Row: {
+          blocked_date: string
+          blocked_time: string | null
+          created_at: string
+          id: string
+          is_full_day: boolean
+          reason: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          blocked_date: string
+          blocked_time?: string | null
+          created_at?: string
+          id?: string
+          is_full_day?: boolean
+          reason?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          blocked_date?: string
+          blocked_time?: string | null
+          created_at?: string
+          id?: string
+          is_full_day?: boolean
+          reason?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           birth_date: string | null
