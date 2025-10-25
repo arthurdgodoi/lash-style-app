@@ -61,20 +61,16 @@ const Dashboard = () => {
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold text-foreground mb-2">
-                Olá, {profile?.full_name || "Lash Designer"}!
-              </h2>
-              <p className="text-muted-foreground">
-                Bem-vindo ao seu painel de agendamentos
-              </p>
-            </div>
-            <Button onClick={() => setAppointmentDialogOpen(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Novo Agendamento
-            </Button>
-          </div>
+          <h2 className="text-3xl font-bold text-foreground mb-2">
+            Olá, {profile?.full_name || "Lash Designer"}!
+          </h2>
+          <p className="text-muted-foreground mb-4">
+            Bem-vindo ao seu painel de agendamentos
+          </p>
+          <Button onClick={() => setAppointmentDialogOpen(true)} className="gap-2">
+            <Plus className="w-4 h-4" />
+            Novo Agendamento
+          </Button>
         </div>
 
         <Card className="p-8 border-border/50 shadow-lg mb-8">
