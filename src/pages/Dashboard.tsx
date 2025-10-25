@@ -112,7 +112,7 @@ const Dashboard = () => {
           .eq("user_id", user.id)
           .eq("day_of_week", dayOfWeek)
           .eq("is_active", true)
-          .single();
+          .maybeSingle();
 
         setAppointments(appointmentsData || []);
         setClients(clientsData || []);

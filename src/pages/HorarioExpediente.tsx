@@ -68,19 +68,58 @@ const HorarioExpediente = () => {
 
     if (error) {
       console.error("Error loading working hours:", error);
+      setLoading(false);
+      return;
+    }
+
+    // If no working hours exist, create default ones (Mon-Sat, 7:00-22:00)
+    if (!data || data.length === 0) {
+      const defaultHours = [];
+      for (let day = 1; day <= 6; day++) {
+        defaultHours.push({
+          user_id: userId,
+          day_of_week: day,
+          start_time: "07:00",
+          end_time: "22:00",
+          is_active: true,
+        });
+      }
+
+      const { data: insertedData, error: insertError } = await supabase
+        .from("working_hours")
+        .insert(defaultHours)
+        .select();
+
+      if (insertError) {
+        console.error("Error creating default hours:", insertError);
+      } else {
+        const hoursMap = new Map(insertedData?.map(h => [h.day_of_week, h]) || []);
+        const allDays = daysOfWeek.map(day => {
+          const existing = hoursMap.get(day.value);
+          return existing || {
+            day_of_week: day.value,
+            start_time: "07:00",
+            end_time: "22:00",
+            is_active: false,
+          };
+        });
+        setWorkingHours(allDays);
+        toast.success("Horários padrão configurados (7h-22h, seg-sáb)");
+      }
     } else {
       const hoursMap = new Map(data.map(h => [h.day_of_week, h]));
       const allDays = daysOfWeek.map(day => {
         const existing = hoursMap.get(day.value);
         return existing || {
           day_of_week: day.value,
-          start_time: "09:00",
-          end_time: "18:00",
+          start_time: "07:00",
+          end_time: "22:00",
           is_active: false,
         };
       });
       setWorkingHours(allDays);
     }
+    
     setLoading(false);
   };
 
