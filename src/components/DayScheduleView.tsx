@@ -152,7 +152,7 @@ export const DayScheduleView = ({
               className="gap-2 w-full sm:w-auto"
             >
               <Ban className="w-4 h-4" />
-              Bloquear Dia Inteiro
+              Bloquear horário
             </Button>
           )
         )}
