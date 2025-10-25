@@ -145,11 +145,11 @@ const Configuracoes = () => {
             </div>
           </Card>
 
-          <Card 
-            className="p-6 border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 group"
-            onClick={() => navigate("/horarios-agendamento")}
-          >
-            <div className="flex items-center justify-between">
+          <Card className="p-6 border-border/50 shadow-lg">
+            <div 
+              className="flex items-center justify-between cursor-pointer group"
+              onClick={() => navigate("/horarios-agendamento")}
+            >
               <div className="flex items-center gap-4">
                 <div className="p-4 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
                   <Calendar className="w-8 h-8 text-primary" />
@@ -165,37 +165,31 @@ const Configuracoes = () => {
               </div>
               <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
             </div>
+            
+            {profile?.booking_slug && (
+              <div className="mt-4 pt-4 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Link2 className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">Link de agendamento configurado</span>
+                  </div>
+                  <Button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      copyBookingLink();
+                    }} 
+                    variant="outline" 
+                    size="sm"
+                    className="gap-2"
+                  >
+                    <Copy className="w-4 h-4" />
+                    Copiar Link
+                  </Button>
+                </div>
+              </div>
+            )}
           </Card>
         </div>
-
-        {/* Booking Link Section */}
-        <Card className="p-6 border-border/50 shadow-lg mt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-primary/10 rounded-lg">
-                <Link2 className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">Link de Agendamento</h3>
-                <p className="text-sm text-muted-foreground">
-                  Compartilhe com seus clientes para agendamentos automáticos
-                </p>
-              </div>
-            </div>
-            {profile?.booking_slug && (
-              <Button onClick={copyBookingLink} variant="outline" className="gap-2">
-                <Copy className="w-4 h-4" />
-                Copiar Link
-              </Button>
-            )}
-          </div>
-
-          {!profile?.booking_slug && (
-            <p className="text-sm text-muted-foreground mt-4">
-              Configure um link em Horários de Agendamento via link
-            </p>
-          )}
-        </Card>
 
         <Card className="p-8 border-border/50 shadow-lg mt-8">
           <div className="max-w-md mx-auto text-center">
