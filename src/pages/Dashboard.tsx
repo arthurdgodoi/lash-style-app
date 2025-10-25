@@ -11,6 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import TopNav from "@/components/TopNav";
 import { AppointmentDialog } from "@/components/AppointmentDialog";
+import { DayScheduleView } from "@/components/DayScheduleView";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -28,6 +29,8 @@ const Dashboard = () => {
   const [bookingSlug, setBookingSlug] = useState("");
   const [bookingEnabled, setBookingEnabled] = useState(false);
   const [showBookingSettings, setShowBookingSettings] = useState(false);
+  const [workingHours, setWorkingHours] = useState<any>(null);
+  const [selectedTimeForAppointment, setSelectedTimeForAppointment] = useState<string>("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -101,9 +104,20 @@ const Dashboard = () => {
           .select("*")
           .eq("user_id", user.id);
 
+        // Fetch working hours for the selected day
+        const dayOfWeek = selectedDate.getDay();
+        const { data: workingHoursData } = await supabase
+          .from("working_hours")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("day_of_week", dayOfWeek)
+          .eq("is_active", true)
+          .single();
+
         setAppointments(appointmentsData || []);
         setClients(clientsData || []);
         setServices(servicesData || []);
+        setWorkingHours(workingHoursData || null);
       } catch (error: any) {
         toast.error("Erro ao carregar agendamentos");
         console.error(error);
@@ -176,6 +190,11 @@ const Dashboard = () => {
     toast.success("Link copiado!");
   };
 
+  const handleCreateAppointmentAtTime = (time: string) => {
+    setSelectedTimeForAppointment(time);
+    setAppointmentDialogOpen(true);
+  };
+
   if (!user) {
     return null;
   }
@@ -236,48 +255,15 @@ const Dashboard = () => {
             <div className="text-center py-12">
               <p className="text-muted-foreground">Carregando...</p>
             </div>
-          ) : appointments.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-                <CalendarIcon className="w-8 h-8 text-primary" />
-              </div>
-              <p className="text-muted-foreground">
-                Nenhum agendamento para esta data
-              </p>
-            </div>
           ) : (
-            <div className="space-y-3">
-              {appointments.map((appointment) => (
-                <Card key={appointment.id} className="p-4 border-border/50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="text-center">
-                        <p className="text-sm font-semibold text-foreground">
-                          {format(new Date(`2000-01-01T${appointment.appointment_time}`), "HH:mm")}
-                        </p>
-                      </div>
-                      <div className="h-10 w-px bg-border" />
-                      <div>
-                        <p className="font-medium text-foreground">
-                          {getClientName(appointment.client_id)}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {getServiceName(appointment.service_id)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-foreground">
-                        R$ {parseFloat(appointment.price).toFixed(2)}
-                      </p>
-                      <p className="text-xs text-muted-foreground capitalize">
-                        {appointment.status}
-                      </p>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+            <DayScheduleView
+              selectedDate={selectedDate}
+              appointments={appointments}
+              workingHours={workingHours}
+              onCreateAppointment={handleCreateAppointmentAtTime}
+              getClientName={getClientName}
+              getServiceName={getServiceName}
+            />
           )}
         </Card>
 
@@ -399,10 +385,16 @@ const Dashboard = () => {
 
         <AppointmentDialog
           open={appointmentDialogOpen}
-          onOpenChange={setAppointmentDialogOpen}
+          onOpenChange={(open) => {
+            setAppointmentDialogOpen(open);
+            if (!open) setSelectedTimeForAppointment("");
+          }}
           onSuccess={() => {
             toast.success("Agendamento criado com sucesso!");
+            setSelectedTimeForAppointment("");
           }}
+          defaultTime={selectedTimeForAppointment}
+          defaultDate={selectedDate}
         />
       </main>
     </div>

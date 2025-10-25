@@ -56,12 +56,16 @@ interface AppointmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  defaultTime?: string;
+  defaultDate?: Date;
 }
 
 export const AppointmentDialog = ({
   open,
   onOpenChange,
   onSuccess,
+  defaultTime,
+  defaultDate,
 }: AppointmentDialogProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -88,8 +92,14 @@ export const AppointmentDialog = ({
     if (open) {
       fetchClients();
       fetchServices();
+      if (defaultTime) {
+        form.setValue("appointment_time", defaultTime);
+      }
+      if (defaultDate) {
+        form.setValue("appointment_date", defaultDate);
+      }
     }
-  }, [open]);
+  }, [open, defaultTime, defaultDate]);
 
   useEffect(() => {
     if (clientSearch) {
