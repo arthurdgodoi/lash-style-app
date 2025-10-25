@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -56,7 +56,7 @@ const ServiceDialog = ({ open, onOpenChange, onSuccess, service }: ServiceDialog
 
   const form = useForm<ServiceFormValues>({
     resolver: zodResolver(serviceSchema),
-    defaultValues: service || {
+    defaultValues: {
       name: "",
       duration_minutes: 90,
       price_mode: "fixed",
@@ -66,6 +66,31 @@ const ServiceDialog = ({ open, onOpenChange, onSuccess, service }: ServiceDialog
       salon_percentage: null,
     },
   });
+
+  // Reset form when service prop changes
+  useEffect(() => {
+    if (service) {
+      form.reset({
+        name: service.name,
+        duration_minutes: service.duration_minutes,
+        price_mode: service.price_mode,
+        suggested_price: service.suggested_price,
+        is_active: service.is_active,
+        include_salon_percentage: service.include_salon_percentage || false,
+        salon_percentage: service.salon_percentage,
+      });
+    } else {
+      form.reset({
+        name: "",
+        duration_minutes: 90,
+        price_mode: "fixed",
+        suggested_price: 0,
+        is_active: true,
+        include_salon_percentage: false,
+        salon_percentage: null,
+      });
+    }
+  }, [service, form]);
 
   const includeSalonPercentage = form.watch("include_salon_percentage");
 
