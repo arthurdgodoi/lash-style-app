@@ -119,14 +119,14 @@ export const DayScheduleView = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-2xl font-bold text-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <h3 className="text-xl sm:text-2xl font-bold text-foreground">
           {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
         </h3>
         <Button
           variant="outline"
           onClick={() => onBlockSlot()}
-          className="gap-2"
+          className="gap-2 w-full sm:w-auto"
         >
           <Ban className="w-4 h-4" />
           Bloquear Dia Inteiro
@@ -168,7 +168,7 @@ export const DayScheduleView = ({
           return (
             <Card
               key={time}
-              className={`p-4 transition-all duration-200 ${
+              className={`p-3 sm:p-4 transition-all duration-200 ${
                 isBlocked
                   ? "border-destructive/50 bg-destructive/5 opacity-60"
                   : appointment
@@ -180,11 +180,11 @@ export const DayScheduleView = ({
                 onCreateAppointment(time);
               }}
             >
-              <div className="flex items-center gap-4">
-                <div className="w-20 text-center">
-                  <p className="text-lg font-semibold text-foreground">{time}</p>
+              <div className="flex items-center gap-2 sm:gap-4">
+                <div className="w-16 sm:w-20 text-center flex-shrink-0">
+                  <p className="text-base sm:text-lg font-semibold text-foreground">{time}</p>
                 </div>
-                <div className="h-12 w-px bg-border" />
+                <div className="h-12 w-px bg-border hidden sm:block" />
                 {isBlocked ? (
                   <div className="flex-1 flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -229,24 +229,24 @@ export const DayScheduleView = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="flex-1 flex items-center justify-between">
+                  <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <p className="text-sm text-muted-foreground">Horário disponível</p>
                     <div className="flex gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="gap-2"
+                        className="gap-1 sm:gap-2 flex-1 sm:flex-initial"
                         onClick={(e) => {
                           e.stopPropagation();
                           onBlockSlot(time);
                         }}
                       >
                         <Ban className="w-4 h-4" />
-                        Bloquear
+                        <span className="hidden sm:inline">Bloquear</span>
                       </Button>
-                      <Button variant="ghost" size="sm" className="gap-2">
+                      <Button variant="ghost" size="sm" className="gap-1 sm:gap-2 flex-1 sm:flex-initial">
                         <Plus className="w-4 h-4" />
-                        Agendar
+                        <span className="hidden sm:inline">Agendar</span>
                       </Button>
                     </div>
                   </div>

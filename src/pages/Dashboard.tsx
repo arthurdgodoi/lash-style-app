@@ -216,9 +216,9 @@ const Dashboard = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
       <TopNav />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
+        <div className="mb-6">
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
             Olá, {profile?.full_name || "Lash Designer"}!
           </h2>
           <p className="text-muted-foreground mb-4">
@@ -230,8 +230,8 @@ const Dashboard = () => {
           </Button>
         </div>
 
-        <Card className="p-8 border-border/50 shadow-lg mb-8">
-          <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <Card className="p-4 sm:p-6 lg:p-8 border-border/50 shadow-lg mb-6">
+          <div className="mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div>
               <h3 className="text-xl font-semibold text-foreground mb-1">
                 Agendamentos
@@ -306,8 +306,8 @@ const Dashboard = () => {
           )}
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="p-6 border-border/50 shadow-lg">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <Card className="p-4 sm:p-6 border-border/50 shadow-lg">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-primary/10 rounded-xl">
                 <CalendarIcon className="w-6 h-6 text-primary" />
@@ -319,7 +319,7 @@ const Dashboard = () => {
             </div>
           </Card>
 
-          <Card className="p-6 border-border/50 shadow-lg">
+          <Card className="p-4 sm:p-6 border-border/50 shadow-lg">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-primary/10 rounded-xl">
                 <Users className="w-6 h-6 text-primary" />
@@ -331,7 +331,7 @@ const Dashboard = () => {
             </div>
           </Card>
 
-          <Card className="p-6 border-border/50 shadow-lg">
+          <Card className="p-4 sm:p-6 border-border/50 shadow-lg">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-primary/10 rounded-xl">
                 <Clock className="w-6 h-6 text-primary" />
@@ -345,7 +345,7 @@ const Dashboard = () => {
         </div>
 
         {/* Booking Link Section */}
-        <Card className="p-6 border-border/50 shadow-lg mt-8">
+        <Card className="p-4 sm:p-6 border-border/50 shadow-lg mt-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-primary/10 rounded-lg">
