@@ -186,7 +186,7 @@ const HorariosAgendamento = () => {
       <main className="w-full max-w-4xl mx-auto px-4 py-6">
         <div className="mb-6">
           <h2 className="text-2xl font-bold text-foreground mb-1">
-            Horários de Agendamento
+            Horários de Agendamento via link
           </h2>
           <p className="text-sm text-muted-foreground">
             Configure os horários que ficarão disponíveis para seus clientes agendarem
