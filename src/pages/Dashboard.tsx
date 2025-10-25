@@ -76,19 +76,13 @@ const Dashboard = () => {
         </div>
 
         <Card className="p-8 border-border/50 shadow-lg mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h3 className="text-xl font-semibold text-foreground mb-1">
-                Agendamentos
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                Gerencie seus atendimentos
-              </p>
-            </div>
-            <Button onClick={() => setAppointmentDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Agendamento
-            </Button>
+          <div className="mb-6">
+            <h3 className="text-xl font-semibold text-foreground mb-1">
+              Agendamentos
+            </h3>
+            <p className="text-muted-foreground text-sm">
+              Gerencie seus atendimentos
+            </p>
           </div>
 
           <div className="text-center py-12">
