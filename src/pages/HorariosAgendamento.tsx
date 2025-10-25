@@ -183,82 +183,82 @@ const HorariosAgendamento = () => {
     <div className="min-h-screen w-full bg-gradient-to-br from-background via-muted/30 to-background overflow-x-hidden">
       <TopNav />
 
-      <main className="w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-5xl">
-        <div className="mb-8 w-full">
-          <h2 className="text-3xl font-bold text-foreground mb-2">
+      <main className="w-full max-w-4xl mx-auto px-4 py-6">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold text-foreground mb-1">
             Horários de Agendamento
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Configure os horários que ficarão disponíveis para seus clientes agendarem
           </p>
         </div>
 
-        <div className="grid gap-6 w-full">
-          <Card className="p-4 sm:p-6 border-border/50 shadow-lg w-full">
-            <h3 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-              <Clock className="w-5 h-5 flex-shrink-0" />
-              <span className="truncate">Adicionar Horário</span>
+        <div className="space-y-4">
+          <Card className="p-4 border-border/50 shadow-lg">
+            <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Clock className="w-4 h-4 flex-shrink-0" />
+              <span>Adicionar Horário</span>
             </h3>
 
-            <div className="space-y-4 w-full">
-              <div className="flex flex-col sm:flex-row gap-2 w-full">
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Input
                   type="time"
                   value={newTimeSlot}
                   onChange={(e) => setNewTimeSlot(e.target.value)}
                   placeholder="09:00"
-                  className="flex-1 w-full"
+                  className="flex-1 text-sm"
                 />
-                <Button onClick={handleAddTimeSlot} className="gap-2 w-full sm:w-auto whitespace-nowrap">
+                <Button onClick={handleAddTimeSlot} className="gap-2 text-sm whitespace-nowrap">
                   <Plus className="w-4 h-4" />
                   Adicionar
                 </Button>
               </div>
 
-              <div className="pt-4 border-t border-border w-full">
+              <div className="pt-3 border-t border-border">
                 <Button
                   variant="outline"
                   onClick={handleAddQuickSlots}
-                  className="w-full text-xs sm:text-sm"
+                  className="w-full text-xs px-2"
                 >
-                  <span className="truncate">Adicionar horários padrão (08:00 às 18:00, a cada 30 min)</span>
+                  Adicionar horários padrão (08:00 às 18:00, a cada 30 min)
                 </Button>
               </div>
             </div>
           </Card>
 
-          <Card className="p-4 sm:p-6 border-border/50 shadow-lg w-full">
-            <h3 className="text-xl font-semibold text-foreground mb-4 truncate">
+          <Card className="p-4 border-border/50 shadow-lg">
+            <h3 className="text-lg font-semibold text-foreground mb-4">
               Horários Configurados ({timeSlots.length})
             </h3>
 
             {loading ? (
-              <p className="text-muted-foreground">Carregando...</p>
+              <p className="text-sm text-muted-foreground">Carregando...</p>
             ) : timeSlots.length === 0 ? (
-              <div className="text-center py-8 w-full">
-                <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground">
+              <div className="text-center py-6">
+                <Clock className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">
                   Nenhum horário configurado ainda
                 </p>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   Adicione horários para que seus clientes possam agendar
                 </p>
               </div>
             ) : (
-              <div className="space-y-3 w-full">
+              <div className="space-y-2">
                 {timeSlots.map((slot) => (
                   <div
                     key={slot.id}
-                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors w-full"
+                    className="flex items-center justify-between p-3 rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <Clock className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                      <span className="text-lg font-medium text-foreground">
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-base font-medium text-foreground">
                         {slot.time_slot.substring(0, 5)}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-3 sm:gap-4 justify-between sm:justify-end">
+                    <div className="flex items-center gap-2">
                       <div className="flex items-center gap-2">
                         <Switch
                           checked={slot.is_active}
@@ -266,7 +266,7 @@ const HorariosAgendamento = () => {
                             handleToggleActive(slot.id, slot.is_active)
                           }
                         />
-                        <Label className="text-sm text-muted-foreground whitespace-nowrap">
+                        <Label className="text-xs text-muted-foreground whitespace-nowrap">
                           {slot.is_active ? "Ativo" : "Inativo"}
                         </Label>
                       </div>
@@ -275,7 +275,7 @@ const HorariosAgendamento = () => {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleDeleteTimeSlot(slot.id)}
-                        className="text-destructive hover:text-destructive flex-shrink-0"
+                        className="text-destructive hover:text-destructive h-8 w-8 p-0"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
