@@ -39,6 +39,7 @@ import { CalendarIcon, Plus, Check } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import ClientDialog from "./ClientDialog";
+import ServiceDialog from "./ServiceDialog";
 
 const appointmentSchema = z.object({
   client_id: z.string().min(1, { message: "Selecione um cliente" }),
@@ -70,6 +71,7 @@ export const AppointmentDialog = ({
   const [clientOpen, setClientOpen] = useState(false);
   const [showClientDialog, setShowClientDialog] = useState(false);
   const [serviceOpen, setServiceOpen] = useState(false);
+  const [showServiceDialog, setShowServiceDialog] = useState(false);
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentSchema),
@@ -172,6 +174,11 @@ export const AppointmentDialog = ({
   const handleClientDialogSuccess = () => {
     setShowClientDialog(false);
     fetchClients();
+  };
+
+  const handleServiceDialogSuccess = () => {
+    setShowServiceDialog(false);
+    fetchServices();
   };
 
   return (
@@ -324,23 +331,24 @@ export const AppointmentDialog = ({
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
                     <FormLabel>Procedimento</FormLabel>
-                    <Popover open={serviceOpen} onOpenChange={setServiceOpen}>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className={cn(
-                              "w-full justify-between",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value
-                              ? services.find((service) => service.id === field.value)?.name
-                              : "Selecione um procedimento"}
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
+                    <div className="flex gap-2">
+                      <Popover open={serviceOpen} onOpenChange={setServiceOpen}>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className={cn(
+                                "flex-1 justify-between",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value
+                                ? services.find((service) => service.id === field.value)?.name
+                                : "Selecione um procedimento"}
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
                       <PopoverContent className="w-[400px] p-0">
                         <Command>
                           <CommandInput placeholder="Buscar procedimento..." />
@@ -384,6 +392,15 @@ export const AppointmentDialog = ({
                         </Command>
                       </PopoverContent>
                     </Popover>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setShowServiceDialog(true)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -447,6 +464,12 @@ export const AppointmentDialog = ({
         open={showClientDialog}
         onOpenChange={setShowClientDialog}
         onSuccess={handleClientDialogSuccess}
+      />
+
+      <ServiceDialog
+        open={showServiceDialog}
+        onOpenChange={setShowServiceDialog}
+        onSuccess={handleServiceDialogSuccess}
       />
     </>
   );
