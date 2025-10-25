@@ -136,6 +136,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          booking_enabled: boolean
+          booking_slug: string | null
           created_at: string
           full_name: string
           id: string
@@ -143,6 +145,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          booking_enabled?: boolean
+          booking_slug?: string | null
           created_at?: string
           full_name: string
           id: string
@@ -150,6 +154,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          booking_enabled?: boolean
+          booking_slug?: string | null
           created_at?: string
           full_name?: string
           id?: string
@@ -195,6 +201,39 @@ export type Database = {
           price_mode?: string
           salon_percentage?: number | null
           suggested_price?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      working_hours: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          start_time: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          start_time: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          start_time?: string
           updated_at?: string
           user_id?: string
         }
