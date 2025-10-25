@@ -3,12 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import TopNav from "@/components/TopNav";
-import { Clock, Save } from "lucide-react";
 import { toast } from "sonner";
+import { Clock, Plus, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
-interface TimeSlot {
+interface BookingTimeSlot {
   id: string;
   time_slot: string;
   is_active: boolean;
@@ -16,16 +18,10 @@ interface TimeSlot {
 
 const HorariosAgendamento = () => {
   const [user, setUser] = useState<any>(null);
-  const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([]);
+  const [timeSlots, setTimeSlots] = useState<BookingTimeSlot[]>([]);
+  const [newTimeSlot, setNewTimeSlot] = useState("");
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
-  // Generate all possible time slots from 00:00 to 23:30 in 30-minute intervals
-  const allPossibleSlots = Array.from({ length: 48 }, (_, i) => {
-    const hour = Math.floor(i / 2);
-    const minute = i % 2 === 0 ? "00" : "30";
-    return `${hour.toString().padStart(2, "0")}:${minute}`;
-  });
 
   useEffect(() => {
     const checkUser = async () => {
@@ -39,6 +35,7 @@ const HorariosAgendamento = () => {
       }
 
       setUser(session.user);
+      fetchTimeSlots(session.user.id);
     };
 
     checkUser();
@@ -50,122 +47,136 @@ const HorariosAgendamento = () => {
         navigate("/auth");
       } else {
         setUser(session.user);
+        fetchTimeSlots(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  useEffect(() => {
-    if (user) {
-      loadTimeSlots();
-    }
-  }, [user]);
-
-  const loadTimeSlots = async () => {
+  const fetchTimeSlots = async (userId: string) => {
     setLoading(true);
     const { data, error } = await supabase
       .from("booking_time_slots")
       .select("*")
-      .eq("user_id", user.id)
-      .order("time_slot");
+      .eq("user_id", userId)
+      .order("time_slot", { ascending: true });
 
     if (error) {
-      console.error("Error loading time slots:", error);
+      console.error("Error fetching time slots:", error);
       toast.error("Erro ao carregar horários");
-      setLoading(false);
-      return;
+    } else {
+      setTimeSlots(data || []);
     }
-
-    // Create a map of existing slots
-    const existingSlotsMap = new Map(
-      data?.map((slot) => [slot.time_slot.substring(0, 5), slot]) || []
-    );
-
-    // Merge with all possible slots
-    const mergedSlots = allPossibleSlots.map((slot) => {
-      const existing = existingSlotsMap.get(slot);
-      return existing || {
-        id: "",
-        time_slot: slot,
-        is_active: false,
-      };
-    });
-
-    setTimeSlots(mergedSlots);
     setLoading(false);
   };
 
-  const toggleTimeSlot = (index: number) => {
-    const newSlots = [...timeSlots];
-    newSlots[index].is_active = !newSlots[index].is_active;
-    setTimeSlots(newSlots);
-  };
+  const handleAddTimeSlot = async () => {
+    if (!newTimeSlot || !user) return;
 
-  const handleSave = async () => {
-    try {
-      // Delete all existing slots for this user
-      const { error: deleteError } = await supabase
-        .from("booking_time_slots")
-        .delete()
-        .eq("user_id", user.id);
+    // Validate time format (HH:MM)
+    const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(newTimeSlot)) {
+      toast.error("Formato de horário inválido. Use HH:MM (ex: 09:00)");
+      return;
+    }
 
-      if (deleteError) throw deleteError;
+    const { error } = await supabase
+      .from("booking_time_slots")
+      .insert({
+        user_id: user.id,
+        time_slot: newTimeSlot,
+        is_active: true,
+      });
 
-      // Insert only active slots
-      const activeSlotsToInsert = timeSlots
-        .filter((slot) => slot.is_active)
-        .map((slot) => ({
-          user_id: user.id,
-          time_slot: slot.time_slot,
-          is_active: true,
-        }));
-
-      if (activeSlotsToInsert.length > 0) {
-        const { error: insertError } = await supabase
-          .from("booking_time_slots")
-          .insert(activeSlotsToInsert);
-
-        if (insertError) throw insertError;
+    if (error) {
+      if (error.code === "23505") {
+        toast.error("Este horário já foi adicionado");
+      } else {
+        toast.error("Erro ao adicionar horário");
       }
-
-      toast.success("Horários salvos com sucesso!");
-    } catch (error: any) {
-      console.error("Error saving time slots:", error);
-      toast.error("Erro ao salvar horários: " + error.message);
+      console.error("Error adding time slot:", error);
+    } else {
+      toast.success("Horário adicionado com sucesso!");
+      setNewTimeSlot("");
+      fetchTimeSlots(user.id);
     }
   };
 
-  const selectAll = () => {
-    setTimeSlots(timeSlots.map((slot) => ({ ...slot, is_active: true })));
+  const handleToggleActive = async (slotId: string, currentStatus: boolean) => {
+    const { error } = await supabase
+      .from("booking_time_slots")
+      .update({ is_active: !currentStatus })
+      .eq("id", slotId);
+
+    if (error) {
+      toast.error("Erro ao atualizar horário");
+      console.error("Error updating time slot:", error);
+    } else {
+      toast.success("Horário atualizado!");
+      if (user) fetchTimeSlots(user.id);
+    }
   };
 
-  const deselectAll = () => {
-    setTimeSlots(timeSlots.map((slot) => ({ ...slot, is_active: false })));
+  const handleDeleteTimeSlot = async (slotId: string) => {
+    const { error } = await supabase
+      .from("booking_time_slots")
+      .delete()
+      .eq("id", slotId);
+
+    if (error) {
+      toast.error("Erro ao excluir horário");
+      console.error("Error deleting time slot:", error);
+    } else {
+      toast.success("Horário excluído!");
+      if (user) fetchTimeSlots(user.id);
+    }
   };
 
-  const selectBusinessHours = () => {
-    // Select slots from 08:00 to 18:00
-    setTimeSlots(
-      timeSlots.map((slot) => {
-        const [hour] = slot.time_slot.split(":").map(Number);
-        return {
-          ...slot,
-          is_active: hour >= 8 && hour < 18,
-        };
-      })
-    );
+  const generateQuickSlots = () => {
+    const slots = [];
+    for (let hour = 8; hour <= 18; hour++) {
+      slots.push(`${hour.toString().padStart(2, "0")}:00`);
+      if (hour < 18) {
+        slots.push(`${hour.toString().padStart(2, "0")}:30`);
+      }
+    }
+    return slots;
   };
 
-  if (!user || loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
-        <TopNav />
-        <main className="container mx-auto px-4 py-8">
-          <p className="text-muted-foreground">Carregando...</p>
-        </main>
-      </div>
-    );
+  const handleAddQuickSlots = async () => {
+    if (!user) return;
+
+    const quickSlots = generateQuickSlots();
+    const existingTimes = timeSlots.map(slot => slot.time_slot);
+    const newSlots = quickSlots.filter(time => !existingTimes.includes(time));
+
+    if (newSlots.length === 0) {
+      toast.info("Todos os horários já foram adicionados");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("booking_time_slots")
+      .insert(
+        newSlots.map(time => ({
+          user_id: user.id,
+          time_slot: time,
+          is_active: true,
+        }))
+      );
+
+    if (error) {
+      toast.error("Erro ao adicionar horários");
+      console.error("Error adding quick slots:", error);
+    } else {
+      toast.success(`${newSlots.length} horários adicionados!`);
+      fetchTimeSlots(user.id);
+    }
+  };
+
+  if (!user) {
+    return null;
   }
 
   return (
@@ -178,68 +189,103 @@ const HorariosAgendamento = () => {
             Horários de Agendamento
           </h2>
           <p className="text-muted-foreground">
-            Selecione os horários que aparecerão para os clientes no link de agendamento
+            Configure os horários que ficarão disponíveis para seus clientes agendarem
           </p>
         </div>
 
-        <Card className="p-6 border-border/50 shadow-lg mb-6">
-          <div className="flex flex-wrap gap-4 mb-6">
-            <Button onClick={selectAll} variant="outline" className="gap-2">
-              <Clock className="w-4 h-4" />
-              Selecionar Todos
-            </Button>
-            <Button onClick={deselectAll} variant="outline" className="gap-2">
-              <Clock className="w-4 h-4" />
-              Desmarcar Todos
-            </Button>
-            <Button onClick={selectBusinessHours} variant="outline" className="gap-2">
-              <Clock className="w-4 h-4" />
-              Horário Comercial (8h-18h)
-            </Button>
-            <Button onClick={handleSave} className="gap-2 ml-auto">
-              <Save className="w-4 h-4" />
-              Salvar Configurações
-            </Button>
-          </div>
+        <div className="grid gap-6">
+          <Card className="p-6 border-border/50 shadow-lg">
+            <h3 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
+              <Clock className="w-5 h-5" />
+              Adicionar Horário
+            </h3>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {timeSlots.map((slot, index) => (
-              <div
-                key={slot.time_slot}
-                className="flex items-center space-x-2 p-3 rounded-lg border border-border/50 hover:border-primary/50 transition-colors"
-              >
-                <Checkbox
-                  id={`slot-${index}`}
-                  checked={slot.is_active}
-                  onCheckedChange={() => toggleTimeSlot(index)}
+            <div className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  type="time"
+                  value={newTimeSlot}
+                  onChange={(e) => setNewTimeSlot(e.target.value)}
+                  placeholder="09:00"
+                  className="flex-1"
                 />
-                <label
-                  htmlFor={`slot-${index}`}
-                  className="text-sm font-medium leading-none cursor-pointer"
-                >
-                  {slot.time_slot}
-                </label>
+                <Button onClick={handleAddTimeSlot} className="gap-2">
+                  <Plus className="w-4 h-4" />
+                  Adicionar
+                </Button>
               </div>
-            ))}
-          </div>
-        </Card>
 
-        <Card className="p-6 border-border/50 shadow-lg bg-muted/30">
-          <div className="flex items-start gap-4">
-            <Clock className="w-6 h-6 text-primary mt-1" />
-            <div>
-              <h3 className="font-semibold text-foreground mb-2">
-                Como funciona?
-              </h3>
-              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li>Selecione os horários que deseja disponibilizar para agendamento</li>
-                <li>Os clientes só verão os horários marcados aqui</li>
-                <li>Os horários bloqueados e já agendados não aparecerão</li>
-                <li>Esta configuração se aplica a todos os dias da semana</li>
-              </ul>
+              <div className="pt-4 border-t border-border">
+                <Button
+                  variant="outline"
+                  onClick={handleAddQuickSlots}
+                  className="w-full"
+                >
+                  Adicionar horários padrão (08:00 às 18:00, a cada 30 min)
+                </Button>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+
+          <Card className="p-6 border-border/50 shadow-lg">
+            <h3 className="text-xl font-semibold text-foreground mb-4">
+              Horários Configurados ({timeSlots.length})
+            </h3>
+
+            {loading ? (
+              <p className="text-muted-foreground">Carregando...</p>
+            ) : timeSlots.length === 0 ? (
+              <div className="text-center py-8">
+                <Clock className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                <p className="text-muted-foreground">
+                  Nenhum horário configurado ainda
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Adicione horários para que seus clientes possam agendar
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {timeSlots.map((slot) => (
+                  <div
+                    key={slot.id}
+                    className="flex items-center justify-between p-4 rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Clock className="w-5 h-5 text-muted-foreground" />
+                      <span className="text-lg font-medium text-foreground">
+                        {slot.time_slot.substring(0, 5)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <Switch
+                          checked={slot.is_active}
+                          onCheckedChange={() =>
+                            handleToggleActive(slot.id, slot.is_active)
+                          }
+                        />
+                        <Label className="text-sm text-muted-foreground">
+                          {slot.is_active ? "Ativo" : "Inativo"}
+                        </Label>
+                      </div>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteTimeSlot(slot.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
       </main>
     </div>
   );

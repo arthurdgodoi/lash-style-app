@@ -136,7 +136,7 @@ const Configuracoes = () => {
                     Horários de Agendamento
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Defina os horários disponíveis para clientes
+                    Configure horários disponíveis para clientes
                   </p>
                 </div>
               </div>
