@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Calendar, Users, Briefcase, DollarSign, LogOut, Settings, Bell } from "lucide-react";
+import { Sparkles, Calendar, Users, Briefcase, DollarSign, LogOut, Settings, Bell, UserCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -238,17 +238,21 @@ const TopNav = () => {
               </PopoverContent>
             </Popover>
 
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigate("/configuracoes")}
+            >
+              <Settings className="w-5 h-5" />
+            </Button>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon">
-                  <Settings className="w-5 h-5" />
+                  <UserCircle className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="bg-card">
-                <DropdownMenuItem onClick={() => navigate("/configuracoes")}>
-                  <Settings className="w-4 h-4 mr-2" />
-                  Configurações
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="w-4 h-4 mr-2" />
                   Sair
