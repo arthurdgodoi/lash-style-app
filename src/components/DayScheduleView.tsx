@@ -133,14 +133,28 @@ export const DayScheduleView = ({
           {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
         </h3>
         {workingHours && (
-          <Button
-            variant="outline"
-            onClick={() => onBlockSlot()}
-            className="gap-2 w-full sm:w-auto"
-          >
-            <Ban className="w-4 h-4" />
-            Bloquear Dia Inteiro
-          </Button>
+          isFullDayBlocked ? (
+            <Button
+              variant="outline"
+              onClick={() => {
+                const fullDayBlock = blockedSlots.find(s => s.is_full_day);
+                if (fullDayBlock) handleUnblock(fullDayBlock.id);
+              }}
+              className="gap-2 w-full sm:w-auto"
+            >
+              <Trash2 className="w-4 h-4" />
+              Desbloquear Agenda
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={() => onBlockSlot()}
+              className="gap-2 w-full sm:w-auto"
+            >
+              <Ban className="w-4 h-4" />
+              Bloquear Dia Inteiro
+            </Button>
+          )
         )}
       </div>
 
