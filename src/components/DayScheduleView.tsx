@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Ban, Trash2 } from "lucide-react";
+import { Plus, Ban, Trash2, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,13 +49,22 @@ export const DayScheduleView = ({
   const [isFullDayBlocked, setIsFullDayBlocked] = useState(false);
 
   useEffect(() => {
-    // Generate time slots based on working hours or default 8:00 - 20:00
-    const startHour = workingHours?.start_time
-      ? parseInt(workingHours.start_time.split(":")[0])
-      : 8;
-    const endHour = workingHours?.end_time
-      ? parseInt(workingHours.end_time.split(":")[0])
-      : 20;
+    // Generate time slots based on working hours
+    if (!workingHours) {
+      setTimeSlots([]);
+      return;
+    }
+
+    const startTime = workingHours.start_time;
+    const endTime = workingHours.end_time;
+    
+    if (!startTime || !endTime) {
+      setTimeSlots([]);
+      return;
+    }
+
+    const [startHour, startMin] = startTime.split(":").map(Number);
+    const [endHour, endMin] = endTime.split(":").map(Number);
 
     const slots: string[] = [];
     for (let hour = startHour; hour <= endHour; hour++) {
@@ -123,17 +132,31 @@ export const DayScheduleView = ({
         <h3 className="text-xl sm:text-2xl font-bold text-foreground">
           {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
         </h3>
-        <Button
-          variant="outline"
-          onClick={() => onBlockSlot()}
-          className="gap-2 w-full sm:w-auto"
-        >
-          <Ban className="w-4 h-4" />
-          Bloquear Dia Inteiro
-        </Button>
+        {workingHours && (
+          <Button
+            variant="outline"
+            onClick={() => onBlockSlot()}
+            className="gap-2 w-full sm:w-auto"
+          >
+            <Ban className="w-4 h-4" />
+            Bloquear Dia Inteiro
+          </Button>
+        )}
       </div>
 
-      {isFullDayBlocked && (
+      {!workingHours ? (
+        <Card className="p-8 text-center border-border/50">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-muted rounded-full mb-4">
+            <Clock className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <p className="text-muted-foreground mb-2">
+            Nenhum horário de expediente configurado para este dia
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Configure os horários de expediente em Configurações → Horário de Expediente
+          </p>
+        </Card>
+      ) : isFullDayBlocked ? (
         <Card className="p-4 border-destructive/50 bg-destructive/5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -157,9 +180,10 @@ export const DayScheduleView = ({
             </Button>
           </div>
         </Card>
-      )}
+      ) : null}
 
-      <div className="space-y-2">
+      {workingHours && timeSlots.length > 0 && (
+        <div className="space-y-2">
         {timeSlots.map((time) => {
           const appointment = getAppointmentAtTime(time);
           const blockedSlot = getBlockedSlotAtTime(time);
@@ -255,7 +279,8 @@ export const DayScheduleView = ({
             </Card>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
