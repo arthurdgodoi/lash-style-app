@@ -133,7 +133,7 @@ const Configuracoes = () => {
                 </div>
                 <div>
                   <h3 className="text-xl font-semibold text-foreground mb-1">
-                    Horários de Agendamento
+                    Horários de Agendamento via link
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     Configure horários disponíveis para clientes
