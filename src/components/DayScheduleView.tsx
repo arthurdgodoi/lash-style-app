@@ -276,7 +276,7 @@ export const DayScheduleView = ({
                     )}
                   </div>
                 ) : appointment ? (
-                  appointment.status === "scheduled" ? (
+                  appointment.status === "scheduled" || appointment.status === "confirmed" ? (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <div className="flex-1 flex items-center justify-between cursor-pointer hover:opacity-80 transition-opacity">
@@ -293,21 +293,25 @@ export const DayScheduleView = ({
                               R$ {parseFloat(appointment.price.toString()).toFixed(2)}
                             </p>
                             <p className="text-xs text-muted-foreground capitalize">
-                              {appointment.status === "scheduled" ? "Agendado" : appointment.status}
+                              {appointment.status === "scheduled" ? "Agendado" : 
+                               appointment.status === "confirmed" ? "Confirmado" : 
+                               appointment.status}
                             </p>
                           </div>
                         </div>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="bg-card">
-                        <DropdownMenuItem 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleConfirmAppointment(appointment.id);
-                          }}
-                        >
-                          <Check className="w-4 h-4 mr-2 text-green-600" />
-                          Confirmar
-                        </DropdownMenuItem>
+                        {appointment.status === "scheduled" && (
+                          <DropdownMenuItem 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleConfirmAppointment(appointment.id);
+                            }}
+                          >
+                            <Check className="w-4 h-4 mr-2 text-green-600" />
+                            Confirmar
+                          </DropdownMenuItem>
+                        )}
                         <DropdownMenuItem 
                           onClick={(e) => {
                             e.stopPropagation();
@@ -343,9 +347,7 @@ export const DayScheduleView = ({
                           R$ {parseFloat(appointment.price.toString()).toFixed(2)}
                         </p>
                         <p className="text-xs text-muted-foreground capitalize">
-                          {appointment.status === "confirmed" ? "Confirmado" : 
-                           appointment.status === "cancelled" ? "Cancelado" : 
-                           appointment.status}
+                          {appointment.status === "cancelled" ? "Cancelado" : appointment.status}
                         </p>
                       </div>
                     </div>
