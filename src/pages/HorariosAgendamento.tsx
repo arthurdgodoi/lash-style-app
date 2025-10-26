@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import TopNav from "@/components/TopNav";
 import { toast } from "sonner";
-import { Clock, Plus, Trash2 } from "lucide-react";
+import { Clock, Plus, Trash2, Copy, Link2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
 interface BookingTimeSlot {
@@ -21,6 +21,7 @@ const HorariosAgendamento = () => {
   const [timeSlots, setTimeSlots] = useState<BookingTimeSlot[]>([]);
   const [newTimeSlot, setNewTimeSlot] = useState("");
   const [loading, setLoading] = useState(true);
+  const [bookingSlug, setBookingSlug] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -36,6 +37,7 @@ const HorariosAgendamento = () => {
 
       setUser(session.user);
       fetchTimeSlots(session.user.id);
+      fetchProfile(session.user.id);
     };
 
     checkUser();
@@ -69,6 +71,30 @@ const HorariosAgendamento = () => {
       setTimeSlots(data || []);
     }
     setLoading(false);
+  };
+
+  const fetchProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("booking_slug")
+      .eq("id", userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error("Error fetching profile:", error);
+    } else {
+      setBookingSlug(data?.booking_slug || null);
+    }
+  };
+
+  const copyBookingLink = () => {
+    if (!bookingSlug) {
+      toast.error("Slug de agendamento não configurado");
+      return;
+    }
+    const link = `${window.location.origin}/agendar/${bookingSlug}`;
+    navigator.clipboard.writeText(link);
+    toast.success("Link copiado para a área de transferência!");
   };
 
   const handleAddTimeSlot = async () => {
@@ -194,6 +220,28 @@ const HorariosAgendamento = () => {
         </div>
 
         <div className="space-y-4">
+          {bookingSlug && (
+            <Card className="p-4 border-border/50 shadow-lg bg-primary/5">
+              <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                <Link2 className="w-4 h-4 flex-shrink-0" />
+                <span>Link de Agendamento</span>
+              </h3>
+              <p className="text-xs text-muted-foreground mb-3">
+                Compartilhe este link com suas clientes para que elas possam agendar
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={`${window.location.origin}/agendar/${bookingSlug}`}
+                  readOnly
+                  className="flex-1 text-sm bg-background"
+                />
+                <Button onClick={copyBookingLink} className="gap-2 text-sm whitespace-nowrap">
+                  <Copy className="w-4 h-4" />
+                  Copiar Link
+                </Button>
+              </div>
+            </Card>
+          )}
           <Card className="p-4 border-border/50 shadow-lg">
             <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
               <Clock className="w-4 h-4 flex-shrink-0" />
