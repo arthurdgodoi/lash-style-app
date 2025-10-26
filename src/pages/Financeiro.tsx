@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Plus, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CalendarIcon, Plus, TrendingUp, TrendingDown, DollarSign, BarChart3, Users, ShoppingBag, Trophy } from "lucide-react";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,10 @@ const Financeiro = () => {
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [expenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [appointmentsCount, setAppointmentsCount] = useState(0);
+  const [newClientsCount, setNewClientsCount] = useState(0);
+  const [topServices, setTopServices] = useState<{ name: string; count: number; revenue: number }[]>([]);
+  const [topClients, setTopClients] = useState<{ name: string; total: number; count: number }[]>([]);
 
   const getDateRange = () => {
     const now = new Date();
@@ -146,6 +151,58 @@ const Financeiro = () => {
       setTransactions(allTransactions);
       setTotalRevenue(revenue);
       setTotalExpenses(expensesTotal);
+
+      // Dados para relatórios
+      setAppointmentsCount(appointments?.length || 0);
+
+      // Novos clientes no período
+      const { data: newClients } = await supabase
+        .from("clients")
+        .select("*")
+        .eq("user_id", user.id)
+        .gte("created_at", startDate)
+        .lte("created_at", endDate);
+
+      setNewClientsCount(newClients?.length || 0);
+
+      // Serviços mais vendidos
+      const servicesMap = new Map<string, { count: number; revenue: number }>();
+      appointments?.forEach((apt) => {
+        const serviceName = (apt.services as any)?.name || "Serviço";
+        const price = parseFloat(apt.price.toString());
+        const current = servicesMap.get(serviceName) || { count: 0, revenue: 0 };
+        servicesMap.set(serviceName, {
+          count: current.count + 1,
+          revenue: current.revenue + price,
+        });
+      });
+
+      const servicesArray = Array.from(servicesMap.entries())
+        .map(([name, data]) => ({ name, ...data }))
+        .sort((a, b) => b.revenue - a.revenue)
+        .slice(0, 5);
+
+      setTopServices(servicesArray);
+
+      // Top clientes
+      const clientsMap = new Map<string, { total: number; count: number }>();
+      appointments?.forEach((apt) => {
+        const clientName = (apt.clients as any)?.name || "Cliente";
+        const price = parseFloat(apt.price.toString());
+        const current = clientsMap.get(clientName) || { total: 0, count: 0 };
+        clientsMap.set(clientName, {
+          total: current.total + price,
+          count: current.count + 1,
+        });
+      });
+
+      const clientsArray = Array.from(clientsMap.entries())
+        .map(([name, data]) => ({ name, ...data }))
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 5);
+
+      setTopClients(clientsArray);
+
     } catch (error) {
       console.error("Erro ao buscar dados financeiros:", error);
       toast.error("Erro ao carregar dados financeiros");
@@ -203,10 +260,17 @@ const Financeiro = () => {
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-foreground mb-2">Financeiro</h2>
           <p className="text-muted-foreground">
-            Acompanhe seus ganhos e despesas
+            Acompanhe seus ganhos, despesas e relatórios
           </p>
         </div>
 
+        <Tabs defaultValue="financial" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="financial">Financeiro</TabsTrigger>
+            <TabsTrigger value="reports">Relatórios</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="financial">
         {/* Filtros */}
         <Card className="mb-6 p-6">
           <div className="flex flex-col items-center gap-4">
@@ -371,6 +435,228 @@ const Financeiro = () => {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="reports">
+            {/* Filtros */}
+            <Card className="mb-6 p-6">
+              <div className="flex flex-col items-center gap-4">
+                <div className="flex flex-wrap gap-2 justify-center">
+                  <Button
+                    variant={filterType === "today" ? "default" : "outline"}
+                    onClick={() => setFilterType("today")}
+                  >
+                    Hoje
+                  </Button>
+                  <Button
+                    variant={filterType === "week" ? "default" : "outline"}
+                    onClick={() => setFilterType("week")}
+                  >
+                    Semana
+                  </Button>
+                  <Button
+                    variant={filterType === "month" ? "default" : "outline"}
+                    onClick={() => setFilterType("month")}
+                  >
+                    Mês
+                  </Button>
+                  <Button
+                    variant={filterType === "custom" ? "default" : "outline"}
+                    onClick={() => setFilterType("custom")}
+                  >
+                    Personalizado
+                  </Button>
+                </div>
+
+                {filterType === "custom" && (
+                  <div className="flex flex-wrap gap-2 items-center justify-center">
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {customStartDate ? format(customStartDate, "dd/MM/yyyy") : "Data inicial"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={customStartDate}
+                          onSelect={setCustomStartDate}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+
+                    <span className="text-muted-foreground">até</span>
+
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {customEndDate ? format(customEndDate, "dd/MM/yyyy") : "Data final"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={customEndDate}
+                          onSelect={setCustomEndDate}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <p className="text-muted-foreground">Carregando relatórios...</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Cards de métricas */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Atendimentos</CardTitle>
+                      <BarChart3 className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{appointmentsCount}</div>
+                      <p className="text-xs text-muted-foreground">no período</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Novos Clientes</CardTitle>
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{newClientsCount}</div>
+                      <p className="text-xs text-muted-foreground">cadastrados</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Receita Total</CardTitle>
+                      <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold text-green-600">
+                        R$ {totalRevenue.toFixed(2)}
+                      </div>
+                      <p className="text-xs text-muted-foreground">no período</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Lucro</CardTitle>
+                      {profit >= 0 ? (
+                        <TrendingUp className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-red-600" />
+                      )}
+                    </CardHeader>
+                    <CardContent>
+                      <div className={cn("text-2xl font-bold", profit >= 0 ? "text-green-600" : "text-red-600")}>
+                        R$ {profit.toFixed(2)}
+                      </div>
+                      <p className="text-xs text-muted-foreground">no período</p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Serviços mais vendidos */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ShoppingBag className="h-5 w-5" />
+                      Serviços Mais Vendidos
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {topServices.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-8">
+                        Nenhum serviço no período
+                      </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {topServices.map((service, index) => (
+                          <div key={index} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                            <div className="flex items-center gap-3">
+                              <span className="text-2xl font-bold text-muted-foreground">
+                                #{index + 1}
+                              </span>
+                              <div>
+                                <p className="font-medium">{service.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {service.count} {service.count === 1 ? "venda" : "vendas"}
+                                </p>
+                              </div>
+                            </div>
+                            <p className="font-bold text-lg">
+                              R$ {service.revenue.toFixed(2)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Top clientes */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Trophy className="h-5 w-5" />
+                      Top Clientes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {topClients.length === 0 ? (
+                      <p className="text-muted-foreground text-center py-8">
+                        Nenhum cliente no período
+                      </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {topClients.map((client, index) => (
+                          <div key={index} className="flex items-center justify-between border-b border-border pb-3 last:border-0 last:pb-0">
+                            <div className="flex items-center gap-3">
+                              <span className={`text-2xl font-bold ${
+                                index === 0 ? "text-yellow-500" :
+                                index === 1 ? "text-gray-400" :
+                                index === 2 ? "text-amber-600" :
+                                "text-muted-foreground"
+                              }`}>
+                                #{index + 1}
+                              </span>
+                              <div>
+                                <p className="font-medium">{client.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {client.count} {client.count === 1 ? "atendimento" : "atendimentos"}
+                                </p>
+                              </div>
+                            </div>
+                            <p className="font-bold text-lg">
+                              R$ {client.total.toFixed(2)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </main>
 
       <ExpenseDialog

@@ -7,6 +7,7 @@ import { Users, Plus, Pencil, Trash2, Mail, Phone, Calendar, FileText } from "lu
 import { useToast } from "@/hooks/use-toast";
 import TopNav from "@/components/TopNav";
 import ClientDialog from "@/components/ClientDialog";
+import { ClientHistoryDialog } from "@/components/ClientHistoryDialog";
 
 const Clientes = () => {
   const [user, setUser] = useState<any>(null);
@@ -14,6 +15,8 @@ const Clientes = () => {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [historyClient, setHistoryClient] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -101,6 +104,11 @@ const Clientes = () => {
     setDialogOpen(true);
   };
 
+  const handleViewHistory = (client: any) => {
+    setHistoryClient(client);
+    setHistoryDialogOpen(true);
+  };
+
   const formatDate = (dateString: string) => {
     if (!dateString) return null;
     const date = new Date(dateString);
@@ -154,7 +162,11 @@ const Clientes = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {clients.map((client) => (
-              <Card key={client.id} className="p-6 border-border/50 shadow-lg">
+              <Card 
+                key={client.id} 
+                className="p-6 border-border/50 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                onClick={() => handleViewHistory(client)}
+              >
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold text-foreground mb-3">
                     {client.name}
@@ -196,7 +208,10 @@ const Clientes = () => {
                     variant="outline"
                     size="sm"
                     className="flex-1"
-                    onClick={() => handleEdit(client)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEdit(client);
+                    }}
                   >
                     <Pencil className="w-4 h-4 mr-2" />
                     Editar
@@ -204,7 +219,10 @@ const Clientes = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleDelete(client.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(client.id);
+                    }}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -220,6 +238,12 @@ const Clientes = () => {
         onOpenChange={setDialogOpen}
         onSuccess={fetchClients}
         client={selectedClient}
+      />
+
+      <ClientHistoryDialog
+        open={historyDialogOpen}
+        onOpenChange={setHistoryDialogOpen}
+        client={historyClient}
       />
     </div>
   );
