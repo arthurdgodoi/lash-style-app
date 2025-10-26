@@ -246,19 +246,13 @@ const TopNav = () => {
               <Settings className="w-5 h-5" />
             </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <UserCircle className="w-5 h-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-card">
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => navigate("/perfil")}
+            >
+              <UserCircle className="w-5 h-5" />
+            </Button>
           </div>
         </div>
 
