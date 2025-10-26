@@ -1,11 +1,17 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Ban, Trash2, Clock } from "lucide-react";
+import { Plus, Ban, Trash2, Clock, Check, Calendar, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface Appointment {
   id: string;
@@ -32,6 +38,8 @@ interface DayScheduleViewProps {
   getClientName: (id: string) => string;
   getServiceName: (id: string) => string;
   userId: string;
+  onRefresh?: () => void;
+  onEditAppointment?: (appointmentId: string) => void;
 }
 
 export const DayScheduleView = ({
@@ -43,6 +51,8 @@ export const DayScheduleView = ({
   getClientName,
   getServiceName,
   userId,
+  onRefresh,
+  onEditAppointment,
 }: DayScheduleViewProps) => {
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
@@ -124,6 +134,36 @@ export const DayScheduleView = ({
       const blockTime = slot.blocked_time.substring(0, 5);
       return blockTime === time;
     });
+  };
+
+  const handleConfirmAppointment = async (appointmentId: string) => {
+    const { error } = await supabase
+      .from("appointments")
+      .update({ status: "confirmed" })
+      .eq("id", appointmentId);
+
+    if (error) {
+      toast.error("Erro ao confirmar agendamento");
+      return;
+    }
+
+    toast.success("Agendamento confirmado!");
+    onRefresh?.();
+  };
+
+  const handleCancelAppointment = async (appointmentId: string) => {
+    const { error } = await supabase
+      .from("appointments")
+      .update({ status: "cancelled" })
+      .eq("id", appointmentId);
+
+    if (error) {
+      toast.error("Erro ao cancelar agendamento");
+      return;
+    }
+
+    toast.success("Agendamento cancelado!");
+    onRefresh?.();
   };
 
   return (
@@ -236,24 +276,80 @@ export const DayScheduleView = ({
                     )}
                   </div>
                 ) : appointment ? (
-                  <div className="flex-1 flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {getClientName(appointment.client_id)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {getServiceName(appointment.service_id)}
-                      </p>
+                  appointment.status === "scheduled" ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <div className="flex-1 flex items-center justify-between cursor-pointer hover:opacity-80 transition-opacity">
+                          <div>
+                            <p className="font-medium text-foreground">
+                              {getClientName(appointment.client_id)}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {getServiceName(appointment.service_id)}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-foreground">
+                              R$ {parseFloat(appointment.price.toString()).toFixed(2)}
+                            </p>
+                            <p className="text-xs text-muted-foreground capitalize">
+                              {appointment.status === "scheduled" ? "Agendado" : appointment.status}
+                            </p>
+                          </div>
+                        </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-card">
+                        <DropdownMenuItem 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleConfirmAppointment(appointment.id);
+                          }}
+                        >
+                          <Check className="w-4 h-4 mr-2 text-green-600" />
+                          Confirmar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditAppointment?.(appointment.id);
+                          }}
+                        >
+                          <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+                          Reagendar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCancelAppointment(appointment.id);
+                          }}
+                        >
+                          <X className="w-4 h-4 mr-2 text-destructive" />
+                          Desmarcar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {getClientName(appointment.client_id)}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {getServiceName(appointment.service_id)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-foreground">
+                          R$ {parseFloat(appointment.price.toString()).toFixed(2)}
+                        </p>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {appointment.status === "confirmed" ? "Confirmado" : 
+                           appointment.status === "cancelled" ? "Cancelado" : 
+                           appointment.status}
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-foreground">
-                        R$ {parseFloat(appointment.price.toString()).toFixed(2)}
-                      </p>
-                      <p className="text-xs text-muted-foreground capitalize">
-                        {appointment.status}
-                      </p>
-                    </div>
-                  </div>
+                  )
                 ) : (
                   <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <p className="text-sm text-muted-foreground">Horário disponível</p>

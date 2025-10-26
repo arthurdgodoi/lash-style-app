@@ -29,6 +29,7 @@ const Dashboard = () => {
   const [selectedTimeForAppointment, setSelectedTimeForAppointment] = useState<string>("");
   const [blockSlotDialogOpen, setBlockSlotDialogOpen] = useState(false);
   const [selectedTimeForBlock, setSelectedTimeForBlock] = useState<string>("");
+  const [editingAppointmentId, setEditingAppointmentId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -197,6 +198,30 @@ const Dashboard = () => {
     setBlockSlotDialogOpen(true);
   };
 
+  const handleRefreshAppointments = async () => {
+    if (!user) return;
+    
+    try {
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      
+      const { data: appointmentsData } = await supabase
+        .from("appointments")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("appointment_date", dateStr)
+        .order("appointment_time", { ascending: true });
+
+      setAppointments(appointmentsData || []);
+    } catch (error: any) {
+      console.error(error);
+    }
+  };
+
+  const handleEditAppointment = (appointmentId: string) => {
+    setEditingAppointmentId(appointmentId);
+    setAppointmentDialogOpen(true);
+  };
+
   if (!user) {
     return null;
   }
@@ -267,6 +292,8 @@ const Dashboard = () => {
               getClientName={getClientName}
               getServiceName={getServiceName}
               userId={user.id}
+              onRefresh={handleRefreshAppointments}
+              onEditAppointment={handleEditAppointment}
             />
           )}
         </Card>
@@ -342,14 +369,19 @@ const Dashboard = () => {
           open={appointmentDialogOpen}
           onOpenChange={(open) => {
             setAppointmentDialogOpen(open);
-            if (!open) setSelectedTimeForAppointment("");
+            if (!open) {
+              setSelectedTimeForAppointment("");
+              setEditingAppointmentId(null);
+            }
           }}
           onSuccess={() => {
-            toast.success("Agendamento criado com sucesso!");
+            toast.success(editingAppointmentId ? "Agendamento atualizado com sucesso!" : "Agendamento criado com sucesso!");
             setSelectedTimeForAppointment("");
+            setEditingAppointmentId(null);
           }}
           defaultTime={selectedTimeForAppointment}
           defaultDate={selectedDate}
+          appointmentId={editingAppointmentId}
         />
 
         <BlockSlotDialog

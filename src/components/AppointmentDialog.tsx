@@ -73,6 +73,7 @@ interface AppointmentDialogProps {
   onSuccess: () => void;
   defaultTime?: string;
   defaultDate?: Date;
+  appointmentId?: string | null;
 }
 
 export const AppointmentDialog = ({
@@ -81,6 +82,7 @@ export const AppointmentDialog = ({
   onSuccess,
   defaultTime,
   defaultDate,
+  appointmentId,
 }: AppointmentDialogProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -111,14 +113,31 @@ export const AppointmentDialog = ({
       fetchClients();
       fetchServices();
       setIncludeSalonPercentage(false);
-      if (defaultTime) {
-        form.setValue("appointment_time", defaultTime);
-      }
-      if (defaultDate) {
-        form.setValue("appointment_date", defaultDate);
+      
+      if (appointmentId) {
+        // Load appointment data for editing
+        fetchAppointmentData(appointmentId);
+      } else {
+        // Reset form for new appointment
+        form.reset({
+          client_id: "",
+          service_id: "",
+          appointment_time: defaultTime || "",
+          appointment_date: defaultDate || new Date(),
+          price: "",
+          include_salon_percentage: false,
+          salon_percentage: "",
+          notes: "",
+        });
+        if (defaultTime) {
+          form.setValue("appointment_time", defaultTime);
+        }
+        if (defaultDate) {
+          form.setValue("appointment_date", defaultDate);
+        }
       }
     }
-  }, [open, defaultTime, defaultDate]);
+  }, [open, defaultTime, defaultDate, appointmentId]);
 
   useEffect(() => {
     if (clientSearch) {
@@ -160,6 +179,39 @@ export const AppointmentDialog = ({
     }
   };
 
+  const fetchAppointmentData = async (id: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("appointments")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        form.reset({
+          client_id: data.client_id,
+          service_id: data.service_id,
+          appointment_time: data.appointment_time,
+          appointment_date: new Date(data.appointment_date),
+          price: data.price.toString(),
+          include_salon_percentage: data.include_salon_percentage || false,
+          salon_percentage: data.salon_percentage?.toString() || "",
+          notes: data.notes || "",
+        });
+        setIncludeSalonPercentage(data.include_salon_percentage || false);
+      }
+    } catch (error) {
+      console.error("Error fetching appointment:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os dados do agendamento",
+        variant: "destructive",
+      });
+    }
+  };
+
   const onSubmit = async (values: AppointmentFormValues) => {
     try {
       setLoading(true);
@@ -169,7 +221,7 @@ export const AppointmentDialog = ({
         throw new Error("Usuário não autenticado");
       }
 
-      const { error } = await supabase.from("appointments").insert({
+      const appointmentData = {
         user_id: user.id,
         client_id: values.client_id,
         service_id: values.service_id,
@@ -181,13 +233,31 @@ export const AppointmentDialog = ({
           ? parseFloat(values.salon_percentage) 
           : null,
         notes: values.notes || null,
-      });
+      };
+
+      let error;
+      if (appointmentId) {
+        // Update existing appointment
+        const result = await supabase
+          .from("appointments")
+          .update(appointmentData)
+          .eq("id", appointmentId);
+        error = result.error;
+      } else {
+        // Create new appointment
+        const result = await supabase
+          .from("appointments")
+          .insert(appointmentData);
+        error = result.error;
+      }
 
       if (error) throw error;
 
       toast({
         title: "Sucesso!",
-        description: "Agendamento criado com sucesso.",
+        description: appointmentId 
+          ? "Agendamento atualizado com sucesso." 
+          : "Agendamento criado com sucesso.",
       });
 
       form.reset();
@@ -219,7 +289,7 @@ export const AppointmentDialog = ({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Novo Agendamento</DialogTitle>
+            <DialogTitle>{appointmentId ? "Editar Agendamento" : "Novo Agendamento"}</DialogTitle>
           </DialogHeader>
 
           <Form {...form}>
