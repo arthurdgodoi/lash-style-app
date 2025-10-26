@@ -209,40 +209,36 @@ const Financeiro = () => {
 
         {/* Filtros */}
         <Card className="mb-6 p-6">
-          <div className="flex flex-wrap gap-4 items-center justify-between">
-            <div className="flex gap-2">
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-wrap gap-2 justify-center">
               <Button
                 variant={filterType === "today" ? "default" : "outline"}
                 onClick={() => setFilterType("today")}
-                size="sm"
               >
                 Hoje
               </Button>
               <Button
                 variant={filterType === "week" ? "default" : "outline"}
                 onClick={() => setFilterType("week")}
-                size="sm"
               >
                 Semana
               </Button>
               <Button
                 variant={filterType === "month" ? "default" : "outline"}
                 onClick={() => setFilterType("month")}
-                size="sm"
               >
                 Mês
               </Button>
               <Button
                 variant={filterType === "custom" ? "default" : "outline"}
                 onClick={() => setFilterType("custom")}
-                size="sm"
               >
                 Personalizado
               </Button>
             </div>
 
             {filterType === "custom" && (
-              <div className="flex gap-2 items-center">
+              <div className="flex flex-wrap gap-2 items-center justify-center">
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" size="sm">
@@ -283,7 +279,7 @@ const Financeiro = () => {
               </div>
             )}
 
-            <Button onClick={() => setExpenseDialogOpen(true)} size="sm">
+            <Button onClick={() => setExpenseDialogOpen(true)} className="w-full max-w-xs">
               <Plus className="mr-2 h-4 w-4" />
               Nova Despesa
             </Button>
