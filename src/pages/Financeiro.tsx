@@ -258,7 +258,7 @@ const Financeiro = () => {
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">Relatórios</h2>
+          <h2 className="text-3xl font-bold text-foreground mb-2">Financeiro</h2>
           <p className="text-muted-foreground">
             Acompanhe seus ganhos, despesas e relatórios
           </p>
