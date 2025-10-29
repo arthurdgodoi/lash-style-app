@@ -65,7 +65,7 @@ export const BlockSlotDialog = ({
     resolver: zodResolver(blockSlotSchema),
     defaultValues: {
       blocked_time: defaultTime || "",
-      is_full_day: !defaultTime,
+      is_full_day: false,
       reason: "",
       start_time: defaultTime || "",
       end_time: "",
