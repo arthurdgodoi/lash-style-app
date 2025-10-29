@@ -367,7 +367,7 @@ const Dashboard = () => {
 
           {!bookingSlug && (
             <p className="text-sm text-muted-foreground mt-4">
-              Configure um link em Horários de Agendamento via link
+              (em breve)
             </p>
           )}
         </Card>
