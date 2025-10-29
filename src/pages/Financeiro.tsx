@@ -274,80 +274,129 @@ const Financeiro = () => {
           <TabsContent value="financial">
         {/* Filtros */}
         <Card className="mb-6 p-6">
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex flex-wrap gap-2 justify-center">
-              <Button
-                variant={filterType === "today" ? "default" : "outline"}
-                onClick={() => setFilterType("today")}
-              >
-                Hoje
-              </Button>
-              <Button
-                variant={filterType === "week" ? "default" : "outline"}
-                onClick={() => setFilterType("week")}
-              >
-                Semana
-              </Button>
-              <Button
-                variant={filterType === "month" ? "default" : "outline"}
-                onClick={() => setFilterType("month")}
-              >
-                Mês
-              </Button>
-              <Button
-                variant={filterType === "custom" ? "default" : "outline"}
-                onClick={() => setFilterType("custom")}
-              >
-                Personalizado
-              </Button>
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Período Selector - ClickUp Style */}
+            <div className="flex-shrink-0 md:w-56">
+              <div className="space-y-1">
+                <Button
+                  variant={filterType === "today" ? "default" : "ghost"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    filterType === "today" && "bg-primary text-primary-foreground"
+                  )}
+                  onClick={() => setFilterType("today")}
+                >
+                  <span className="mr-2">📅</span>
+                  <span>Hoje</span>
+                  {filterType === "today" && (
+                    <span className="ml-auto text-xs opacity-70">ter</span>
+                  )}
+                </Button>
+                <Button
+                  variant={filterType === "week" ? "default" : "ghost"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    filterType === "week" && "bg-primary text-primary-foreground"
+                  )}
+                  onClick={() => setFilterType("week")}
+                >
+                  <span className="mr-2">📆</span>
+                  <span>Esta semana</span>
+                  {filterType === "week" && (
+                    <span className="ml-auto text-xs opacity-70">7d</span>
+                  )}
+                </Button>
+                <Button
+                  variant={filterType === "month" ? "default" : "ghost"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    filterType === "month" && "bg-primary text-primary-foreground"
+                  )}
+                  onClick={() => setFilterType("month")}
+                >
+                  <span className="mr-2">📊</span>
+                  <span>Este mês</span>
+                  {filterType === "month" && (
+                    <span className="ml-auto text-xs opacity-70">30d</span>
+                  )}
+                </Button>
+                <Button
+                  variant={filterType === "custom" ? "default" : "ghost"}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    filterType === "custom" && "bg-primary text-primary-foreground"
+                  )}
+                  onClick={() => setFilterType("custom")}
+                >
+                  <span className="mr-2">🗓️</span>
+                  <span>Personalizado</span>
+                </Button>
+              </div>
             </div>
 
-            {filterType === "custom" && (
-              <div className="flex flex-wrap gap-2 items-center justify-center">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {customStartDate ? format(customStartDate, "dd/MM/yyyy") : "Data inicial"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={customStartDate}
-                      onSelect={setCustomStartDate}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
+            {/* Calendário e Ações */}
+            <div className="flex-1 space-y-4">
+              {filterType === "custom" && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b">
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                      Data inicial
+                    </label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {customStartDate ? format(customStartDate, "dd/MM/yyyy") : "Selecione"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={customStartDate}
+                          onSelect={setCustomStartDate}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
 
-                <span className="text-muted-foreground">até</span>
+                  <div>
+                    <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                      Data de vencimento
+                    </label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="w-full justify-start text-left font-normal"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {customEndDate ? format(customEndDate, "dd/MM/yyyy") : "Selecione"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={customEndDate}
+                          onSelect={setCustomEndDate}
+                          initialFocus
+                          className="pointer-events-auto"
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+              )}
 
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {customEndDate ? format(customEndDate, "dd/MM/yyyy") : "Data final"}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={customEndDate}
-                      onSelect={setCustomEndDate}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            )}
-
-            <Button onClick={() => setExpenseDialogOpen(true)} className="w-full max-w-xs">
-              <Plus className="mr-2 h-4 w-4" />
-              Nova Despesa
-            </Button>
+              <Button onClick={() => setExpenseDialogOpen(true)} className="w-full md:w-auto">
+                <Plus className="mr-2 h-4 w-4" />
+                Nova Despesa
+              </Button>
+            </div>
           </div>
         </Card>
 
