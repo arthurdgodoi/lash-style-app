@@ -20,6 +20,7 @@ export type Database = {
           appointment_time: string
           client_id: string
           created_at: string
+          deleted_at: string | null
           id: string
           include_salon_percentage: boolean
           notes: string | null
@@ -35,6 +36,7 @@ export type Database = {
           appointment_time: string
           client_id: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           include_salon_percentage?: boolean
           notes?: string | null
@@ -50,6 +52,7 @@ export type Database = {
           appointment_time?: string
           client_id?: string
           created_at?: string
+          deleted_at?: string | null
           id?: string
           include_salon_percentage?: boolean
           notes?: string | null
@@ -77,11 +80,45 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          record_id: string
+          table_name: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id: string
+          table_name: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          record_id?: string
+          table_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       blocked_slots: {
         Row: {
           blocked_date: string
           blocked_time: string | null
           created_at: string
+          deleted_at: string | null
           id: string
           is_full_day: boolean
           reason: string | null
@@ -92,6 +129,7 @@ export type Database = {
           blocked_date: string
           blocked_time?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_full_day?: boolean
           reason?: string | null
@@ -102,6 +140,7 @@ export type Database = {
           blocked_date?: string
           blocked_time?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_full_day?: boolean
           reason?: string | null
@@ -141,6 +180,7 @@ export type Database = {
         Row: {
           birth_date: string | null
           created_at: string
+          deleted_at: string | null
           email: string | null
           id: string
           name: string
@@ -152,6 +192,7 @@ export type Database = {
         Insert: {
           birth_date?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           id?: string
           name: string
@@ -163,6 +204,7 @@ export type Database = {
         Update: {
           birth_date?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           id?: string
           name?: string
@@ -177,6 +219,7 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          deleted_at: string | null
           description: string
           id: string
           is_fixed: boolean
@@ -187,6 +230,7 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
+          deleted_at?: string | null
           description: string
           id?: string
           is_fixed?: boolean
@@ -197,6 +241,7 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          deleted_at?: string | null
           description?: string
           id?: string
           is_fixed?: boolean
@@ -302,6 +347,7 @@ export type Database = {
       services: {
         Row: {
           created_at: string
+          deleted_at: string | null
           duration_minutes: number
           id: string
           include_salon_percentage: boolean
@@ -315,6 +361,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           duration_minutes: number
           id?: string
           include_salon_percentage?: boolean
@@ -328,6 +375,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           duration_minutes?: number
           id?: string
           include_salon_percentage?: boolean

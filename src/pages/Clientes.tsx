@@ -54,9 +54,12 @@ const Clientes = () => {
   const fetchClients = async () => {
     setLoading(true);
     try {
+      if (!user) return;
+      
       const { data, error } = await supabase
         .from("clients")
         .select("*")
+        .eq("user_id", user.id)
         .order("name", { ascending: true });
 
       if (error) throw error;

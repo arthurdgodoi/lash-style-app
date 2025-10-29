@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Clientes from "./pages/Clientes";
@@ -29,17 +30,17 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/agenda" element={<Dashboard />} />
-            <Route path="/clientes" element={<Clientes />} />
-            <Route path="/servicos" element={<Servicos />} />
-            <Route path="/financeiro" element={<Financeiro />} />
-            <Route path="/configuracoes" element={<Configuracoes />} />
-            <Route path="/notificacoes" element={<Notificacoes />} />
-            <Route path="/horario-expediente" element={<HorarioExpediente />} />
-            <Route path="/horarios-agendamento" element={<HorariosAgendamento />} />
-            <Route path="/modelos-mensagem" element={<ModelosMensagem />} />
+            <Route path="/agenda" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
+            <Route path="/servicos" element={<ProtectedRoute><Servicos /></ProtectedRoute>} />
+            <Route path="/financeiro" element={<ProtectedRoute><Financeiro /></ProtectedRoute>} />
+            <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+            <Route path="/notificacoes" element={<ProtectedRoute><Notificacoes /></ProtectedRoute>} />
+            <Route path="/horario-expediente" element={<ProtectedRoute><HorarioExpediente /></ProtectedRoute>} />
+            <Route path="/horarios-agendamento" element={<ProtectedRoute><HorariosAgendamento /></ProtectedRoute>} />
+            <Route path="/modelos-mensagem" element={<ProtectedRoute><ModelosMensagem /></ProtectedRoute>} />
             <Route path="/agendar/:slug" element={<AgendamentoPublico />} />
-            <Route path="/perfil" element={<Perfil />} />
+            <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
             <Route path="/auth" element={<Auth />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
