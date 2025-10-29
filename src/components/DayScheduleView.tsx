@@ -59,29 +59,13 @@ export const DayScheduleView = ({
   const [isFullDayBlocked, setIsFullDayBlocked] = useState(false);
 
   useEffect(() => {
-    // Generate time slots based on working hours
-    if (!workingHours) {
-      setTimeSlots([]);
-      return;
-    }
-
-    const startTime = workingHours.start_time;
-    const endTime = workingHours.end_time;
-    
-    if (!startTime || !endTime) {
-      setTimeSlots([]);
-      return;
-    }
-
-    const [startHour, startMin] = startTime.split(":").map(Number);
-    const [endHour, endMin] = endTime.split(":").map(Number);
-
+    // Generate time slots from 6am to 11pm (like week view)
     const slots: string[] = [];
-    for (let hour = startHour; hour <= endHour; hour++) {
+    for (let hour = 6; hour <= 23; hour++) {
       slots.push(`${hour.toString().padStart(2, "0")}:00`);
     }
     setTimeSlots(slots);
-  }, [workingHours]);
+  }, []);
 
   useEffect(() => {
     fetchBlockedSlots();
@@ -187,46 +171,32 @@ export const DayScheduleView = ({
         <h3 className="text-xl sm:text-2xl font-bold text-foreground">
           {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
         </h3>
-        {workingHours && (
-          isFullDayBlocked ? (
-            <Button
-              variant="outline"
-              onClick={() => {
-                const fullDayBlock = blockedSlots.find(s => s.is_full_day);
-                if (fullDayBlock) handleUnblock(fullDayBlock.id);
-              }}
-              className="gap-2 w-full sm:w-auto"
-            >
-              <Trash2 className="w-4 h-4" />
-              Desbloquear Agenda
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              onClick={() => onBlockSlot()}
-              className="gap-2 w-full sm:w-auto"
-            >
-              <Ban className="w-4 h-4" />
-              Bloquear horário
-            </Button>
-          )
+        {isFullDayBlocked ? (
+          <Button
+            variant="outline"
+            onClick={() => {
+              const fullDayBlock = blockedSlots.find(s => s.is_full_day);
+              if (fullDayBlock) handleUnblock(fullDayBlock.id);
+            }}
+            className="gap-2 w-full sm:w-auto"
+          >
+            <Trash2 className="w-4 h-4" />
+            Desbloquear Agenda
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            onClick={() => onBlockSlot()}
+            className="gap-2 w-full sm:w-auto"
+          >
+            <Ban className="w-4 h-4" />
+            Bloquear horário
+          </Button>
         )}
       </div>
 
-      {!workingHours ? (
-        <Card className="p-8 text-center border-border/50">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-muted rounded-full mb-4">
-            <Clock className="w-8 h-8 text-muted-foreground" />
-          </div>
-          <p className="text-muted-foreground mb-2">
-            Nenhum horário de expediente configurado para este dia
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Configure os horários de expediente em Configurações → Horário de Expediente
-          </p>
-        </Card>
-      ) : isFullDayBlocked ? (
-        <Card className="p-4 border-destructive/50 bg-destructive/5">
+      {isFullDayBlocked && (
+        <Card className="p-4 border-destructive/50 bg-destructive/5 mb-4">
           <div className="flex items-center gap-3">
             <Ban className="w-5 h-5 text-destructive" />
             <div>
@@ -237,9 +207,9 @@ export const DayScheduleView = ({
             </div>
           </div>
         </Card>
-      ) : null}
+      )}
 
-      {workingHours && timeSlots.length > 0 && (
+      {timeSlots.length > 0 && (
         <div className="w-full overflow-x-auto">
           <div className="min-w-[300px]">
             {/* Header */}
