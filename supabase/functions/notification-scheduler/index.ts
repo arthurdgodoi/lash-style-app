@@ -137,14 +137,21 @@ Deno.serve(async (req) => {
           }
 
           if (workingHours && workingHours.length > 0) {
-            // Get today's appointments count
+            // Get today's appointments with client details
             const todayDate = now.toISOString().split('T')[0];
             const { data: todayAppointments, error: todayAppointmentsError } = await supabase
               .from('appointments')
-              .select('id')
+              .select(`
+                id,
+                appointment_time,
+                clients (
+                  name
+                )
+              `)
               .eq('user_id', user.id)
               .eq('appointment_date', todayDate)
-              .eq('status', 'scheduled');
+              .eq('status', 'scheduled')
+              .order('appointment_time');
 
             if (todayAppointmentsError) {
               console.error('Error fetching today appointments:', todayAppointmentsError);
@@ -153,32 +160,69 @@ Deno.serve(async (req) => {
 
             const appointmentCount = todayAppointments?.length || 0;
 
-            // Check if notification already exists today
-            const { data: existingMorningNotification } = await supabase
+            // Check if greeting notification already exists today
+            const { data: existingGreetingNotification } = await supabase
               .from('notifications')
               .select('id')
               .eq('user_id', user.id)
               .eq('title', 'Bom dia! ☀️')
               .gte('created_at', todayDate);
 
-            if (!existingMorningNotification || existingMorningNotification.length === 0) {
-              const message = appointmentCount > 0
+            if (!existingGreetingNotification || existingGreetingNotification.length === 0) {
+              const greetingMessage = appointmentCount > 0
                 ? `Você tem ${appointmentCount} atendimento${appointmentCount > 1 ? 's' : ''} agendado${appointmentCount > 1 ? 's' : ''} para hoje.`
                 : 'Você não tem atendimentos agendados para hoje.';
 
-              const { error: morningNotificationError } = await supabase
+              const { error: greetingNotificationError } = await supabase
                 .from('notifications')
                 .insert({
                   user_id: user.id,
                   title: 'Bom dia! ☀️',
-                  message: message,
+                  message: greetingMessage,
                   is_read: false
                 });
 
-              if (morningNotificationError) {
-                console.error('Error creating morning notification:', morningNotificationError);
+              if (greetingNotificationError) {
+                console.error('Error creating greeting notification:', greetingNotificationError);
               } else {
-                console.log(`Created morning notification for user ${user.id}`);
+                console.log(`Created greeting notification for user ${user.id}`);
+              }
+            }
+
+            // Create reminder notification if there are appointments
+            if (appointmentCount > 0) {
+              const { data: existingReminderNotification } = await supabase
+                .from('notifications')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('title', 'Envie lembretes aos clientes')
+                .gte('created_at', todayDate);
+
+              if (!existingReminderNotification || existingReminderNotification.length === 0) {
+                // Build list of clients with appointment times
+                const clientsList = todayAppointments
+                  .map((apt: any) => {
+                    const clientName = apt.clients?.name || 'Cliente';
+                    return `• ${clientName} às ${apt.appointment_time.substring(0, 5)}`;
+                  })
+                  .join('\n');
+
+                const reminderMessage = `Você tem ${appointmentCount} atendimento${appointmentCount > 1 ? 's' : ''} hoje. Envie lembretes para:\n\n${clientsList}`;
+
+                const { error: reminderNotificationError } = await supabase
+                  .from('notifications')
+                  .insert({
+                    user_id: user.id,
+                    title: 'Envie lembretes aos clientes',
+                    message: reminderMessage,
+                    is_read: false
+                  });
+
+                if (reminderNotificationError) {
+                  console.error('Error creating reminder notification:', reminderNotificationError);
+                } else {
+                  console.log(`Created reminder notification for user ${user.id}`);
+                }
               }
             }
           }
