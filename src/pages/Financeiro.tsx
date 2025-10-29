@@ -274,68 +274,73 @@ const Financeiro = () => {
           <TabsContent value="financial">
         {/* Filtros */}
         <Card className="mb-6 p-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Período Selector - ClickUp Style */}
-            <div className="flex-shrink-0 md:w-56">
-              <div className="space-y-1">
-                <Button
-                  variant={filterType === "today" ? "default" : "ghost"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    filterType === "today" && "bg-primary text-primary-foreground"
-                  )}
-                  onClick={() => setFilterType("today")}
-                >
-                  <span className="mr-2">📅</span>
-                  <span>Hoje</span>
-                  {filterType === "today" && (
-                    <span className="ml-auto text-xs opacity-70">ter</span>
-                  )}
-                </Button>
-                <Button
-                  variant={filterType === "week" ? "default" : "ghost"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    filterType === "week" && "bg-primary text-primary-foreground"
-                  )}
-                  onClick={() => setFilterType("week")}
-                >
-                  <span className="mr-2">📆</span>
-                  <span>Esta semana</span>
-                  {filterType === "week" && (
-                    <span className="ml-auto text-xs opacity-70">7d</span>
-                  )}
-                </Button>
-                <Button
-                  variant={filterType === "month" ? "default" : "ghost"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    filterType === "month" && "bg-primary text-primary-foreground"
-                  )}
-                  onClick={() => setFilterType("month")}
-                >
-                  <span className="mr-2">📊</span>
-                  <span>Este mês</span>
-                  {filterType === "month" && (
-                    <span className="ml-auto text-xs opacity-70">30d</span>
-                  )}
-                </Button>
-                <Button
-                  variant={filterType === "custom" ? "default" : "ghost"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    filterType === "custom" && "bg-primary text-primary-foreground"
-                  )}
-                  onClick={() => setFilterType("custom")}
-                >
-                  <span className="mr-2">🗓️</span>
-                  <span>Personalizado</span>
-                </Button>
-              </div>
+          <div className="flex flex-col md:flex-row gap-4 items-start">
+            {/* Período Selector - Dropdown Style */}
+            <div className="flex-shrink-0 w-full md:w-auto">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="w-full md:w-56 justify-between"
+                  >
+                    <span>
+                      {filterType === "today" && "Hoje"}
+                      {filterType === "week" && "Esta semana"}
+                      {filterType === "month" && "Este mês"}
+                      {filterType === "custom" && "Personalizado"}
+                    </span>
+                    <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-2 z-50 bg-background" align="start">
+                  <div className="space-y-1">
+                    <Button
+                      variant={filterType === "today" ? "default" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setFilterType("today");
+                        document.body.click(); // Close popover
+                      }}
+                    >
+                      Hoje
+                    </Button>
+                    <Button
+                      variant={filterType === "week" ? "default" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setFilterType("week");
+                        document.body.click();
+                      }}
+                    >
+                      Esta semana
+                    </Button>
+                    <Button
+                      variant={filterType === "month" ? "default" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setFilterType("month");
+                        document.body.click();
+                      }}
+                    >
+                      Este mês
+                    </Button>
+                    <Button
+                      variant={filterType === "custom" ? "default" : "ghost"}
+                      className="w-full justify-start"
+                      onClick={() => {
+                        setFilterType("custom");
+                        document.body.click();
+                      }}
+                    >
+                      Personalizado
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* Calendário e Ações */}
-            <div className="flex-1 space-y-4">
+            <div className="flex-1 w-full space-y-4">
               {filterType === "custom" && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-4 border-b">
                   <div>
@@ -352,7 +357,7 @@ const Financeiro = () => {
                           {customStartDate ? format(customStartDate, "dd/MM/yyyy") : "Selecione"}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0 z-50 bg-background" align="start">
                         <Calendar
                           mode="single"
                           selected={customStartDate}
@@ -378,7 +383,7 @@ const Financeiro = () => {
                           {customEndDate ? format(customEndDate, "dd/MM/yyyy") : "Selecione"}
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent className="w-auto p-0 z-50 bg-background" align="start">
                         <Calendar
                           mode="single"
                           selected={customEndDate}
