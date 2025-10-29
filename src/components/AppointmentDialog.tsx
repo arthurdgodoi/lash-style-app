@@ -427,9 +427,9 @@ export const AppointmentDialog = ({
                       </PopoverTrigger>
                       <PopoverContent 
                         className="w-auto p-0" 
-                        align="start"
-                        sideOffset={5}
-                        alignOffset={-10}
+                        align="center"
+                        side="bottom"
+                        sideOffset={8}
                       >
                         <Calendar
                           mode="single"
