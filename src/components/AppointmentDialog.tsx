@@ -37,7 +37,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { CalendarIcon, Plus, Check } from "lucide-react";
+import { CalendarIcon, Plus, Check, MessageSquare } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { replaceMessageVariables, createWhatsAppLink } from "@/lib/whatsappUtils";
@@ -95,6 +95,9 @@ export const AppointmentDialog = ({
   const [serviceOpen, setServiceOpen] = useState(false);
   const [showServiceDialog, setShowServiceDialog] = useState(false);
   const [includeSalonPercentage, setIncludeSalonPercentage] = useState(false);
+  const [messageTemplates, setMessageTemplates] = useState<any>({});
+  const [appointmentData, setAppointmentData] = useState<any>(null);
+  const [professionalData, setProfessionalData] = useState<any>(null);
 
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(appointmentSchema),
@@ -118,6 +121,8 @@ export const AppointmentDialog = ({
       if (appointmentId) {
         // Load appointment data for editing
         fetchAppointmentData(appointmentId);
+        fetchMessageTemplates();
+        fetchProfessionalData();
       } else {
         // Reset form for new appointment
         form.reset({
@@ -184,13 +189,18 @@ export const AppointmentDialog = ({
     try {
       const { data, error } = await supabase
         .from("appointments")
-        .select("*")
+        .select(`
+          *,
+          clients (name, phone),
+          services (name)
+        `)
         .eq("id", id)
         .single();
 
       if (error) throw error;
 
       if (data) {
+        setAppointmentData(data);
         form.reset({
           client_id: data.client_id,
           service_id: data.service_id,
@@ -211,6 +221,91 @@ export const AppointmentDialog = ({
         variant: "destructive",
       });
     }
+  };
+
+  const fetchMessageTemplates = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("message_templates")
+        .select("template_type, message")
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      const templates: any = {};
+      data?.forEach((template) => {
+        templates[template.template_type] = template.message;
+      });
+      setMessageTemplates(templates);
+    } catch (error) {
+      console.error("Error fetching templates:", error);
+    }
+  };
+
+  const fetchProfessionalData = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("professional_name, location, pix_key")
+        .eq("id", user.id)
+        .single();
+
+      if (error) throw error;
+      setProfessionalData(data);
+    } catch (error) {
+      console.error("Error fetching professional data:", error);
+    }
+  };
+
+  const handleSendWhatsAppMessage = (templateType: string) => {
+    if (!appointmentData) return;
+
+    const client = appointmentData.clients;
+    const service = appointmentData.services;
+
+    if (!client?.phone) {
+      toast({
+        title: "Aviso",
+        description: "Cliente não possui telefone cadastrado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const template = messageTemplates[templateType];
+    if (!template) {
+      toast({
+        title: "Aviso",
+        description: `Template de mensagem "${templateType}" não encontrado.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const horarioFormatado = `${format(new Date(appointmentData.appointment_date), "dd/MM/yyyy")} às ${appointmentData.appointment_time}`;
+    
+    const message = replaceMessageVariables(template, {
+      nome_cliente: client.name,
+      nome_profissional: professionalData?.professional_name || "profissional",
+      horario_agendamento: horarioFormatado,
+      chave_pix: professionalData?.pix_key || "",
+      valor: `R$ ${appointmentData.price}`,
+      localizacao: professionalData?.location || "",
+    });
+
+    const whatsappLink = createWhatsAppLink(client.phone, message);
+    window.open(whatsappLink, "_blank");
+
+    toast({
+      title: "WhatsApp aberto",
+      description: "A mensagem foi preparada no WhatsApp.",
+    });
   };
 
   const onSubmit = async (values: AppointmentFormValues) => {
@@ -762,6 +857,46 @@ export const AppointmentDialog = ({
                   </FormItem>
                 )}
               />
+
+              {appointmentId && appointmentData && (
+                <div className="border rounded-lg p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageSquare className="h-4 w-4" />
+                    <Label className="text-base font-semibold">Enviar pelo WhatsApp</Label>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleSendWhatsAppMessage("scheduled")}
+                      disabled={!appointmentData.clients?.phone || !messageTemplates.scheduled}
+                      className="justify-start"
+                    >
+                      📱 Confirmar horário
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => handleSendWhatsAppMessage("reminder")}
+                      disabled={!appointmentData.clients?.phone || !messageTemplates.reminder}
+                      className="justify-start"
+                    >
+                      🔔 Enviar lembrete
+                    </Button>
+                    {appointmentData.status === "completed" && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => handleSendWhatsAppMessage("thanks")}
+                        disabled={!appointmentData.clients?.phone || !messageTemplates.thanks}
+                        className="justify-start"
+                      >
+                        💚 Agradecer atendimento
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="flex flex-wrap gap-2 justify-end">
                  <Button
