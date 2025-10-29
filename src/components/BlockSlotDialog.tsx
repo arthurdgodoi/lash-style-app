@@ -37,6 +37,8 @@ const blockSlotSchema = z.object({
   blocked_time: z.string().optional(),
   is_full_day: z.boolean(),
   reason: z.string().optional(),
+  start_time: z.string().optional(),
+  end_time: z.string().optional(),
 });
 
 type BlockSlotFormValues = z.infer<typeof blockSlotSchema>;
@@ -65,10 +67,13 @@ export const BlockSlotDialog = ({
       blocked_time: defaultTime || "",
       is_full_day: !defaultTime,
       reason: "",
+      start_time: defaultTime || "",
+      end_time: "",
     },
   });
 
   const isFullDay = form.watch("is_full_day");
+  const hasDefaultTime = !!defaultTime;
 
   const onSubmit = async (values: BlockSlotFormValues) => {
     try {
@@ -79,21 +84,49 @@ export const BlockSlotDialog = ({
         throw new Error("Usuário não autenticado");
       }
 
-      const { error } = await supabase.from("blocked_slots").insert({
-        user_id: user.id,
-        blocked_date: format(selectedDate, "yyyy-MM-dd"),
-        blocked_time: values.is_full_day ? null : values.blocked_time || null,
-        is_full_day: values.is_full_day,
-        reason: values.reason || null,
-      });
+      // Se for um período, criar bloqueios para cada hora
+      if (hasDefaultTime && values.start_time && values.end_time) {
+        const [startHour] = values.start_time.split(":").map(Number);
+        const [endHour] = values.end_time.split(":").map(Number);
+        
+        if (startHour >= endHour) {
+          toast.error("O horário de término deve ser após o horário de início");
+          return;
+        }
 
-      if (error) throw error;
+        const blocksToInsert = [];
+        for (let hour = startHour; hour < endHour; hour++) {
+          blocksToInsert.push({
+            user_id: user.id,
+            blocked_date: format(selectedDate, "yyyy-MM-dd"),
+            blocked_time: `${hour.toString().padStart(2, "0")}:00`,
+            is_full_day: false,
+            reason: values.reason || null,
+          });
+        }
 
-      toast.success(
-        values.is_full_day 
-          ? "Dia bloqueado com sucesso!" 
-          : "Horário bloqueado com sucesso!"
-      );
+        const { error } = await supabase.from("blocked_slots").insert(blocksToInsert);
+        if (error) throw error;
+
+        toast.success(`Período bloqueado com sucesso! (${blocksToInsert.length} horários)`);
+      } else {
+        // Bloquear horário único ou dia inteiro
+        const { error } = await supabase.from("blocked_slots").insert({
+          user_id: user.id,
+          blocked_date: format(selectedDate, "yyyy-MM-dd"),
+          blocked_time: values.is_full_day ? null : values.blocked_time || null,
+          is_full_day: values.is_full_day,
+          reason: values.reason || null,
+        });
+
+        if (error) throw error;
+
+        toast.success(
+          values.is_full_day 
+            ? "Dia bloqueado com sucesso!" 
+            : "Horário bloqueado com sucesso!"
+        );
+      }
 
       form.reset();
       onSuccess();
@@ -161,13 +194,14 @@ export const BlockSlotDialog = ({
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
+                      disabled={hasDefaultTime}
                     />
                   </FormControl>
                 </FormItem>
               )}
             />
 
-            {!isFullDay && (
+            {!isFullDay && !hasDefaultTime && (
               <FormField
                 control={form.control}
                 name="blocked_time"
@@ -185,6 +219,55 @@ export const BlockSlotDialog = ({
                   </FormItem>
                 )}
               />
+            )}
+
+            {hasDefaultTime && !isFullDay && (
+              <div className="space-y-4">
+                <div className="p-3 bg-muted rounded-lg">
+                  <p className="text-sm font-medium mb-2">Bloquear período</p>
+                  <p className="text-xs text-muted-foreground">
+                    Defina o horário de início e fim para bloquear múltiplos horários
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="start_time"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Horário Início</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Ex: 07:00"
+                            type="time"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="end_time"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Horário Fim</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Ex: 11:00"
+                            type="time"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
             )}
 
             <FormField
