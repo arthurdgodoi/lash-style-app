@@ -40,6 +40,7 @@ interface DayScheduleViewProps {
   userId: string;
   onRefresh?: () => void;
   onEditAppointment?: (appointmentId: string) => void;
+  onNewAppointment?: () => void;
 }
 
 export const DayScheduleView = ({
@@ -53,6 +54,7 @@ export const DayScheduleView = ({
   userId,
   onRefresh,
   onEditAppointment,
+  onNewAppointment,
 }: DayScheduleViewProps) => {
   const [timeSlots, setTimeSlots] = useState<string[]>([]);
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
@@ -167,32 +169,42 @@ export const DayScheduleView = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div className="space-y-4 mb-6">
         <h3 className="text-xl sm:text-2xl font-bold text-foreground">
           {format(selectedDate, "EEEE, d 'de' MMMM", { locale: ptBR })}
         </h3>
-        {isFullDayBlocked ? (
-          <Button
-            variant="outline"
-            onClick={() => {
-              const fullDayBlock = blockedSlots.find(s => s.is_full_day);
-              if (fullDayBlock) handleUnblock(fullDayBlock.id);
-            }}
-            className="gap-2 w-full sm:w-auto"
-          >
-            <Trash2 className="w-4 h-4" />
-            Desbloquear Agenda
-          </Button>
-        ) : (
-          <Button
-            variant="outline"
-            onClick={() => onBlockSlot()}
-            className="gap-2 w-full sm:w-auto"
-          >
-            <Ban className="w-4 h-4" />
-            Bloquear horário
+        
+        {onNewAppointment && (
+          <Button onClick={onNewAppointment} className="gap-2 w-full sm:w-auto">
+            <Plus className="w-4 h-4" />
+            Novo Agendamento
           </Button>
         )}
+        
+        <div className="flex gap-2">
+          {isFullDayBlocked ? (
+            <Button
+              variant="outline"
+              onClick={() => {
+                const fullDayBlock = blockedSlots.find(s => s.is_full_day);
+                if (fullDayBlock) handleUnblock(fullDayBlock.id);
+              }}
+              className="gap-2 w-full sm:w-auto"
+            >
+              <Trash2 className="w-4 h-4" />
+              Desbloquear Agenda
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              onClick={() => onBlockSlot()}
+              className="gap-2 w-full sm:w-auto"
+            >
+              <Ban className="w-4 h-4" />
+              Bloquear horário
+            </Button>
+          )}
+        </div>
       </div>
 
       {isFullDayBlocked && (

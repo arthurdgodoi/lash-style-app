@@ -260,13 +260,6 @@ const Dashboard = () => {
       <TopNav />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
-        <div className="mb-6 flex items-center justify-between">
-          <Button onClick={() => setAppointmentDialogOpen(true)} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Novo Agendamento
-          </Button>
-        </div>
-
         <Card className="p-4 sm:p-6 lg:p-8 border-border/50 shadow-lg mb-6">
           <div className="mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex-1">
@@ -327,6 +320,7 @@ const Dashboard = () => {
               userId={user.id}
               onRefresh={handleRefreshAppointments}
               onEditAppointment={handleEditAppointment}
+              onNewAppointment={() => setAppointmentDialogOpen(true)}
             />
           ) : viewMode === "week" ? (
             <WeekScheduleView
