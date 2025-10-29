@@ -11,10 +11,13 @@ import BottomNav from "@/components/BottomNav";
 import { AppointmentDialog } from "@/components/AppointmentDialog";
 import { BlockSlotDialog } from "@/components/BlockSlotDialog";
 import { DayScheduleView } from "@/components/DayScheduleView";
+import { WeekScheduleView } from "@/components/WeekScheduleView";
+import { MonthScheduleView } from "@/components/MonthScheduleView";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Dashboard = () => {
   const [user, setUser] = useState<any>(null);
@@ -31,6 +34,7 @@ const Dashboard = () => {
   const [blockSlotDialogOpen, setBlockSlotDialogOpen] = useState(false);
   const [selectedTimeForBlock, setSelectedTimeForBlock] = useState<string>("");
   const [editingAppointmentId, setEditingAppointmentId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"day" | "week" | "month">("day");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -74,20 +78,38 @@ const Dashboard = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  // Fetch appointments for selected date
+  // Fetch appointments for selected date range
   useEffect(() => {
     const fetchAppointments = async () => {
       if (!user) return;
       
       setLoading(true);
       try {
-        const dateStr = format(selectedDate, "yyyy-MM-dd");
+        let startDate: Date;
+        let endDate: Date;
+
+        if (viewMode === "day") {
+          startDate = selectedDate;
+          endDate = selectedDate;
+        } else if (viewMode === "week") {
+          const { startOfWeek, endOfWeek } = await import("date-fns");
+          startDate = startOfWeek(selectedDate, { locale: ptBR });
+          endDate = endOfWeek(selectedDate, { locale: ptBR });
+        } else {
+          const { startOfMonth, endOfMonth } = await import("date-fns");
+          startDate = startOfMonth(selectedDate);
+          endDate = endOfMonth(selectedDate);
+        }
+
+        const startDateStr = format(startDate, "yyyy-MM-dd");
+        const endDateStr = format(endDate, "yyyy-MM-dd");
         
         const { data: appointmentsData, error: appointmentsError } = await supabase
           .from("appointments")
           .select("*")
           .eq("user_id", user.id)
-          .eq("appointment_date", dateStr)
+          .gte("appointment_date", startDateStr)
+          .lte("appointment_date", endDateStr)
           .order("appointment_time", { ascending: true });
 
         if (appointmentsError) throw appointmentsError;
@@ -164,7 +186,7 @@ const Dashboard = () => {
       supabase.removeChannel(appointmentsChannel);
       supabase.removeChannel(blockedSlotsChannel);
     };
-  }, [user, selectedDate]);
+  }, [user, selectedDate, viewMode]);
 
   const getClientName = (clientId: string) => {
     return clients.find(c => c.id === clientId)?.name || "Cliente";
@@ -191,6 +213,12 @@ const Dashboard = () => {
 
   const handleCreateAppointmentAtTime = (time: string) => {
     setSelectedTimeForAppointment(time);
+    setAppointmentDialogOpen(true);
+  };
+
+  const handleCreateAppointmentAtDate = (date: Date, time?: string) => {
+    setSelectedDate(date);
+    setSelectedTimeForAppointment(time || "");
     setAppointmentDialogOpen(true);
   };
 
@@ -247,7 +275,7 @@ const Dashboard = () => {
 
         <Card className="p-4 sm:p-6 lg:p-8 border-border/50 shadow-lg mb-6">
           <div className="mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div>
+            <div className="flex-1">
               <h3 className="text-xl font-semibold text-foreground mb-1">
                 Agendamentos
               </h3>
@@ -256,34 +284,44 @@ const Dashboard = () => {
               </p>
             </div>
             
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  className="gap-2 hover:bg-accent hover:border-primary transition-all duration-200 cursor-pointer"
-                >
-                  <CalendarIcon className="w-4 h-4" />
-                  {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => date && setSelectedDate(date)}
-                  initialFocus
-                  className={cn("p-3 pointer-events-auto")}
-                  locale={ptBR}
-                />
-              </PopoverContent>
-            </Popover>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "day" | "week" | "month")}>
+                <TabsList>
+                  <TabsTrigger value="day">Dia</TabsTrigger>
+                  <TabsTrigger value="week">Semana</TabsTrigger>
+                  <TabsTrigger value="month">Mês</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="gap-2 hover:bg-accent hover:border-primary transition-all duration-200 cursor-pointer"
+                  >
+                    <CalendarIcon className="w-4 h-4" />
+                    {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => date && setSelectedDate(date)}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                    locale={ptBR}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
 
           {loading ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">Carregando...</p>
             </div>
-          ) : (
+          ) : viewMode === "day" ? (
             <DayScheduleView
               selectedDate={selectedDate}
               appointments={appointments}
@@ -295,6 +333,24 @@ const Dashboard = () => {
               userId={user.id}
               onRefresh={handleRefreshAppointments}
               onEditAppointment={handleEditAppointment}
+            />
+          ) : viewMode === "week" ? (
+            <WeekScheduleView
+              selectedDate={selectedDate}
+              appointments={appointments}
+              onCreateAppointment={handleCreateAppointmentAtDate}
+              onEditAppointment={handleEditAppointment}
+              getClientName={getClientName}
+              getServiceName={getServiceName}
+            />
+          ) : (
+            <MonthScheduleView
+              selectedDate={selectedDate}
+              appointments={appointments}
+              onCreateAppointment={handleCreateAppointmentAtDate}
+              onEditAppointment={handleEditAppointment}
+              getClientName={getClientName}
+              getServiceName={getServiceName}
             />
           )}
         </Card>
