@@ -10,8 +10,15 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, subscription, loading } = useAuth();
   const [checking, setChecking] = useState(true);
   const navigate = useNavigate();
+  
+  // DEV MODE: Bypass subscription check in development
+  const isDev = import.meta.env.DEV;
 
   useEffect(() => {
+    if (isDev) {
+      console.log("🔧 DEV MODE: Subscription check disabled");
+    }
+    
     if (!loading) {
       if (!user) {
         navigate("/auth");
@@ -21,13 +28,13 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       // Wait for subscription data to be available
       if (subscription !== null) {
-        if (!subscription.subscribed) {
+        if (!subscription.subscribed && !isDev) {
           navigate("/assinatura");
         }
         setChecking(false);
       }
     }
-  }, [user, subscription, loading, navigate]);
+  }, [user, subscription, loading, navigate, isDev]);
 
   if (loading || checking || subscription === null) {
     return (
@@ -37,5 +44,5 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
-  return user && subscription.subscribed ? <>{children}</> : null;
+  return user && (subscription.subscribed || isDev) ? <>{children}</> : null;
 };
