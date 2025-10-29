@@ -240,20 +240,6 @@ const Configuracoes = () => {
             )}
           </Card>
         </div>
-
-        <Card className="p-8 border-border/50 shadow-lg mt-8">
-          <div className="max-w-md mx-auto text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
-              <Settings className="w-8 h-8 text-primary" />
-            </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">
-              Outras Configurações
-            </h3>
-            <p className="text-muted-foreground">
-              Em breve você poderá gerenciar seu perfil, notificações e outras preferências.
-            </p>
-          </div>
-        </Card>
       </main>
       
       <BottomNav />
