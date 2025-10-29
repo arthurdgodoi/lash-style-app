@@ -16,6 +16,7 @@ const Home = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -166,7 +167,7 @@ const Home = () => {
             <ChevronLeft className="h-5 w-5" />
           </Button>
           
-          <Popover>
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
@@ -188,7 +189,12 @@ const Home = () => {
               <CalendarComponent
                 mode="single"
                 selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
+                onSelect={(date) => {
+                  if (date) {
+                    setSelectedDate(date);
+                    setCalendarOpen(false);
+                  }
+                }}
                 initialFocus
                 className="pointer-events-auto"
                 locale={ptBR}
