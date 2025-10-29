@@ -26,6 +26,7 @@ const Home = () => {
   const [messageTemplates, setMessageTemplates] = useState<any>({});
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
+  const [clickedButtons, setClickedButtons] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,6 +65,14 @@ const Home = () => {
       fetchTodayData(user.id, selectedDate);
     }
   }, [selectedDate]);
+
+  useEffect(() => {
+    // Load clicked buttons from localStorage
+    const stored = localStorage.getItem('whatsapp_clicks');
+    if (stored) {
+      setClickedButtons(JSON.parse(stored));
+    }
+  }, []);
 
   const fetchTodayData = async (userId: string, date: Date) => {
     setLoading(true);
@@ -161,6 +170,24 @@ const Home = () => {
       .replace(/{localizacao}/g, profile?.location || "");
     
     return `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+  };
+
+  const handleWhatsAppClick = (templateType: string, appointmentId: string) => {
+    const link = generateWhatsAppLink(templateType);
+    if (link) {
+      window.open(link, "_blank");
+      
+      // Mark as clicked
+      const key = `${appointmentId}-${templateType}`;
+      const newClickedButtons = { ...clickedButtons, [key]: true };
+      setClickedButtons(newClickedButtons);
+      localStorage.setItem('whatsapp_clicks', JSON.stringify(newClickedButtons));
+    }
+  };
+
+  const isButtonClicked = (appointmentId: string, templateType: string) => {
+    const key = `${appointmentId}-${templateType}`;
+    return clickedButtons[key] || false;
   };
 
   const nextAppointment = todayAppointments.find((apt) => {
@@ -349,31 +376,36 @@ const Home = () => {
               </div>
             </div>
             
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => {
-                  const link = generateWhatsAppLink("confirmation");
-                  if (link) window.open(link, "_blank");
-                }}
-                disabled={!generateWhatsAppLink("confirmation")}
-              >
-                Confirmar horário
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex-1"
-                onClick={() => {
-                  const link = generateWhatsAppLink("reminder");
-                  if (link) window.open(link, "_blank");
-                }}
-                disabled={!generateWhatsAppLink("reminder")}
-              >
-                Enviar lembrete
-              </Button>
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+                📱 Enviar pelo WhatsApp
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "flex-1",
+                    isButtonClicked(nextAppointment.id, "confirmation") && "opacity-50"
+                  )}
+                  onClick={() => handleWhatsAppClick("confirmation", nextAppointment.id)}
+                  disabled={!generateWhatsAppLink("confirmation")}
+                >
+                  📱 Confirmar horário
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    "flex-1",
+                    isButtonClicked(nextAppointment.id, "reminder") && "opacity-50"
+                  )}
+                  onClick={() => handleWhatsAppClick("reminder", nextAppointment.id)}
+                  disabled={!generateWhatsAppLink("reminder")}
+                >
+                  🔔 Enviar lembrete
+                </Button>
+              </div>
             </div>
           </Card>
         )}
