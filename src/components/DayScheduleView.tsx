@@ -166,6 +166,21 @@ export const DayScheduleView = ({
     onRefresh?.();
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "scheduled":
+        return "bg-blue-500/90 border-blue-600 text-white";
+      case "confirmed":
+        return "bg-green-500/90 border-green-600 text-white";
+      case "completed":
+        return "bg-purple-500/90 border-purple-600 text-white";
+      case "cancelled":
+        return "bg-red-500/90 border-red-600 text-white";
+      default:
+        return "bg-muted border-border text-foreground";
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -225,160 +240,165 @@ export const DayScheduleView = ({
       ) : null}
 
       {workingHours && timeSlots.length > 0 && (
-        <div className="space-y-2">
-        {timeSlots.map((time) => {
-          const appointment = getAppointmentAtTime(time);
-          const blockedSlot = getBlockedSlotAtTime(time);
-          const isBlocked = isFullDayBlocked || !!blockedSlot;
-          
-          return (
-            <Card
-              key={time}
-              className={`p-3 sm:p-4 transition-all duration-200 ${
-                isBlocked
-                  ? "border-destructive/50 bg-destructive/5 opacity-60"
-                  : appointment
-                  ? "border-primary bg-primary/5"
-                  : "border-border/50 hover:border-primary/50 hover:bg-accent/50 cursor-pointer"
-              }`}
-              onClick={() => {
-                if (isBlocked || appointment) return;
-                onCreateAppointment(time);
-              }}
-            >
-              <div className="flex items-center gap-2 sm:gap-4">
-                <div className="w-16 sm:w-20 text-center flex-shrink-0">
-                  <p className="text-base sm:text-lg font-semibold text-foreground">{time}</p>
+        <div className="w-full overflow-x-auto">
+          <div className="min-w-[300px]">
+            {/* Header */}
+            <div className="grid grid-cols-2 gap-px bg-border mb-px">
+              <div className="bg-background p-2 text-xs font-medium text-muted-foreground">
+                Horário
+              </div>
+              <div className="bg-background p-2 text-center">
+                <div className="text-xs font-medium text-muted-foreground uppercase">
+                  {format(selectedDate, "EEE", { locale: ptBR })}
                 </div>
-                <div className="h-12 w-px bg-border hidden sm:block" />
-                {isBlocked ? (
-                  <div className="flex-1 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Ban className="w-4 h-4 text-destructive" />
-                      <div>
-                        <p className="font-medium text-foreground">Horário bloqueado</p>
-                        {blockedSlot?.reason && (
-                          <p className="text-sm text-muted-foreground">{blockedSlot.reason}</p>
-                        )}
-                      </div>
+                <div className="text-lg font-semibold text-primary">
+                  {format(selectedDate, "dd")}
+                </div>
+              </div>
+            </div>
+
+            {/* Time Slots Grid */}
+            <div className="grid gap-px bg-border">
+              {timeSlots.map((time) => {
+                const appointment = getAppointmentAtTime(time);
+                const blockedSlot = getBlockedSlotAtTime(time);
+                const isBlocked = isFullDayBlocked || !!blockedSlot;
+                
+                return (
+                  <div key={time} className="grid grid-cols-2 gap-px bg-border">
+                    {/* Time Label */}
+                    <div className="bg-background p-2 text-xs text-muted-foreground font-medium">
+                      {time}
                     </div>
-                    {!isFullDayBlocked && blockedSlot && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleUnblock(blockedSlot.id);
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                ) : appointment ? (
-                  appointment.status === "scheduled" || appointment.status === "confirmed" ? (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <div className="flex-1 flex items-center justify-between cursor-pointer hover:opacity-80 transition-opacity">
-                          <div>
-                            <p className="font-medium text-foreground">
-                              {getClientName(appointment.client_id)}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {getServiceName(appointment.service_id)}
-                            </p>
+                    
+                    {/* Day Cell */}
+                    <div
+                      className={`bg-background p-1 min-h-[60px] cursor-pointer hover:bg-accent/50 transition-colors relative ${
+                        isBlocked ? "bg-destructive/5" : ""
+                      }`}
+                      onClick={() => {
+                        if (!isBlocked && !appointment) {
+                          onCreateAppointment(time);
+                        }
+                      }}
+                    >
+                      {isBlocked ? (
+                        <div className="flex items-center justify-between h-full p-1">
+                          <div className="flex items-center gap-1">
+                            <Ban className="w-3 h-3 text-destructive flex-shrink-0" />
+                            <div>
+                              <p className="text-[10px] font-medium text-foreground">Bloqueado</p>
+                              {blockedSlot?.reason && (
+                                <p className="text-[9px] text-muted-foreground truncate">
+                                  {blockedSlot.reason}
+                                </p>
+                              )}
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-foreground">
-                              R$ {parseFloat(appointment.price.toString()).toFixed(2)}
-                            </p>
-                            <p className="text-xs text-muted-foreground capitalize">
-                              {appointment.status === "scheduled" ? "Agendado" : 
-                               appointment.status === "confirmed" ? "Confirmado" : 
-                               appointment.status}
-                            </p>
+                          {!isFullDayBlocked && blockedSlot && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUnblock(blockedSlot.id);
+                              }}
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
+                          )}
+                        </div>
+                      ) : appointment ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <div
+                              className={`text-[10px] p-1 rounded border cursor-pointer hover:opacity-80 transition-opacity h-full ${getStatusColor(
+                                appointment.status
+                              )}`}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <div className="font-medium truncate">
+                                {getClientName(appointment.client_id)}
+                              </div>
+                              <div className="truncate opacity-90">
+                                {getServiceName(appointment.service_id)}
+                              </div>
+                              <div className="text-[9px] opacity-90">
+                                R$ {parseFloat(appointment.price.toString()).toFixed(2)}
+                              </div>
+                            </div>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-card">
+                            {(appointment.status === "scheduled" || appointment.status === "confirmed") && (
+                              <>
+                                {appointment.status === "scheduled" && (
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleConfirmAppointment(appointment.id);
+                                    }}
+                                  >
+                                    <Check className="w-4 h-4 mr-2 text-green-600" />
+                                    Confirmar
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEditAppointment?.(appointment.id);
+                                  }}
+                                >
+                                  <Calendar className="w-4 h-4 mr-2 text-blue-600" />
+                                  Reagendar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCancelAppointment(appointment.id);
+                                  }}
+                                >
+                                  <X className="w-4 h-4 mr-2 text-destructive" />
+                                  Desmarcar
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <div className="flex items-center justify-center h-full">
+                          <div className="flex gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onBlockSlot(time);
+                              }}
+                            >
+                              <Ban className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onCreateAppointment(time);
+                              }}
+                            >
+                              <Plus className="w-3 h-3" />
+                            </Button>
                           </div>
                         </div>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-card">
-                        {appointment.status === "scheduled" && (
-                          <DropdownMenuItem 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleConfirmAppointment(appointment.id);
-                            }}
-                          >
-                            <Check className="w-4 h-4 mr-2 text-green-600" />
-                            Confirmar
-                          </DropdownMenuItem>
-                        )}
-                        <DropdownMenuItem 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEditAppointment?.(appointment.id);
-                          }}
-                        >
-                          <Calendar className="w-4 h-4 mr-2 text-blue-600" />
-                          Reagendar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCancelAppointment(appointment.id);
-                          }}
-                        >
-                          <X className="w-4 h-4 mr-2 text-destructive" />
-                          Desmarcar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  ) : (
-                    <div className="flex-1 flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-foreground">
-                          {getClientName(appointment.client_id)}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          {getServiceName(appointment.service_id)}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-foreground">
-                          R$ {parseFloat(appointment.price.toString()).toFixed(2)}
-                        </p>
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {appointment.status === "cancelled" ? "Cancelado" : appointment.status}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                ) : (
-                  <div className="flex-1 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                    <p className="text-sm text-muted-foreground">Horário disponível</p>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="gap-1 sm:gap-2 flex-1 sm:flex-initial"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onBlockSlot(time);
-                        }}
-                      >
-                        <Ban className="w-4 h-4" />
-                        <span className="hidden sm:inline">Bloquear</span>
-                      </Button>
-                      <Button variant="ghost" size="sm" className="gap-1 sm:gap-2 flex-1 sm:flex-initial">
-                        <Plus className="w-4 h-4" />
-                        <span className="hidden sm:inline">Agendar</span>
-                      </Button>
+                      )}
                     </div>
                   </div>
-                )}
-              </div>
-            </Card>
-          );
-        })}
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
     </div>
