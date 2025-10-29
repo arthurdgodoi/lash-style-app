@@ -1,4 +1,4 @@
-import { Home, Calendar, Menu } from "lucide-react";
+import { Home, Calendar, DollarSign, Menu } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ const BottomNav = () => {
   const navItems = [
     { icon: Home, label: "Início", path: "/" },
     { icon: Calendar, label: "Agenda", path: "/agenda" },
+    { icon: DollarSign, label: "Financeiro", path: "/financeiro" },
     { icon: Menu, label: "Menu", path: "/configuracoes" },
   ];
 
