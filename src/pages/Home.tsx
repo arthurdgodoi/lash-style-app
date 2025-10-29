@@ -114,7 +114,10 @@ const Home = () => {
       <TopNav />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-4">
+            <Calendar className="w-10 h-10 text-primary" />
+          </div>
           <h2 className="text-3xl font-bold text-foreground mb-2">
             Olá! 👋
           </h2>
@@ -126,8 +129,7 @@ const Home = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card className="p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <Calendar className="w-4 h-4 text-primary" />
+            <div className="mb-2">
               <span className="text-sm text-muted-foreground">Hoje</span>
             </div>
             <p className="text-2xl font-bold">{todayAppointments.length}</p>
@@ -135,8 +137,7 @@ const Home = () => {
           </Card>
 
           <Card className="p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <Clock className="w-4 h-4 text-green-500" />
+            <div className="mb-2">
               <span className="text-sm text-muted-foreground">Concluídos</span>
             </div>
             <p className="text-2xl font-bold">{completedCount}</p>
@@ -144,8 +145,7 @@ const Home = () => {
           </Card>
 
           <Card className="p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <User className="w-4 h-4 text-blue-500" />
+            <div className="mb-2">
               <span className="text-sm text-muted-foreground">Pendentes</span>
             </div>
             <p className="text-2xl font-bold">{scheduledCount}</p>
@@ -153,8 +153,7 @@ const Home = () => {
           </Card>
 
           <Card className="p-4">
-            <div className="flex items-center space-x-2 mb-2">
-              <DollarSign className="w-4 h-4 text-green-600" />
+            <div className="mb-2">
               <span className="text-sm text-muted-foreground">Faturamento</span>
             </div>
             <p className="text-2xl font-bold">
