@@ -19,6 +19,7 @@ const ModelosMensagem = () => {
   const [scheduledMessage, setScheduledMessage] = useState("");
   const [confirmationMessage, setConfirmationMessage] = useState("");
   const [reminderMessage, setReminderMessage] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const variables = [
     { label: "Nome da cliente", value: "{nome_cliente}" },
@@ -41,6 +42,7 @@ const ModelosMensagem = () => {
       }
 
       setUser(session.user);
+      await loadTemplates(session.user.id);
     };
 
     checkUser();
@@ -52,17 +54,78 @@ const ModelosMensagem = () => {
         navigate("/auth");
       } else {
         setUser(session.user);
+        loadTemplates(session.user.id);
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleSave = () => {
-    toast({
-      title: "Mensagens salvas",
-      description: "Seus modelos de mensagem foram salvos com sucesso.",
-    });
+  const loadTemplates = async (userId: string) => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("message_templates")
+        .select("*")
+        .eq("user_id", userId);
+
+      if (error) throw error;
+
+      if (data) {
+        data.forEach((template) => {
+          if (template.template_type === "scheduled") {
+            setScheduledMessage(template.message);
+          } else if (template.template_type === "confirmation") {
+            setConfirmationMessage(template.message);
+          } else if (template.template_type === "reminder") {
+            setReminderMessage(template.message);
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error loading templates:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+
+    try {
+      const templates = [
+        { template_type: "scheduled", message: scheduledMessage },
+        { template_type: "confirmation", message: confirmationMessage },
+        { template_type: "reminder", message: reminderMessage },
+      ];
+
+      for (const template of templates) {
+        if (template.message.trim()) {
+          await supabase
+            .from("message_templates")
+            .upsert(
+              {
+                user_id: user.id,
+                template_type: template.template_type,
+                message: template.message,
+              },
+              { onConflict: "user_id,template_type" }
+            );
+        }
+      }
+
+      toast({
+        title: "Mensagens salvas",
+        description: "Seus modelos de mensagem foram salvos com sucesso.",
+      });
+    } catch (error) {
+      console.error("Error saving templates:", error);
+      toast({
+        title: "Erro ao salvar",
+        description: "Ocorreu um erro ao salvar seus modelos de mensagem.",
+        variant: "destructive",
+      });
+    }
   };
 
   if (!user) {

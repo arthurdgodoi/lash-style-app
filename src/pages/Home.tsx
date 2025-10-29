@@ -22,6 +22,7 @@ const Home = () => {
   const [services, setServices] = useState<any[]>([]);
   const [todayRevenue, setTodayRevenue] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [messageTemplates, setMessageTemplates] = useState<any>({});
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -95,9 +96,23 @@ const Home = () => {
         .select("*")
         .eq("user_id", userId);
 
+      // Fetch message templates
+      const { data: templatesData } = await supabase
+        .from("message_templates")
+        .select("*")
+        .eq("user_id", userId);
+
+      const templates: any = {};
+      if (templatesData) {
+        templatesData.forEach((template) => {
+          templates[template.template_type] = template.message;
+        });
+      }
+
       setTodayAppointments(appointmentsData || []);
       setClients(clientsData || []);
       setServices(servicesData || []);
+      setMessageTemplates(templates);
 
       // Calculate today's revenue
       const revenue = (appointmentsData || [])
@@ -119,6 +134,45 @@ const Home = () => {
   const getServiceName = (serviceId: string) => {
     const service = services.find((s) => s.id === serviceId);
     return service?.name || "Serviço não encontrado";
+  };
+
+  const formatPhoneForWhatsApp = (phone: string | null) => {
+    if (!phone) return null;
+    // Remove all non-numeric characters
+    return phone.replace(/\D/g, "");
+  };
+
+  const replaceTemplateVariables = (template: string, appointment: any, client: any) => {
+    if (!template) return "";
+    
+    return template
+      .replace(/{nome_cliente}/g, client?.name || "")
+      .replace(/{nome_profissional}/g, profile?.professional_name || profile?.full_name || "")
+      .replace(/{horario_agendamento}/g, appointment.appointment_time.substring(0, 5) || "")
+      .replace(/{valor}/g, `R$ ${Number(appointment.price || 0).toFixed(2)}`)
+      .replace(/{chave_pix}/g, profile?.pix_key || "")
+      .replace(/{localizacao}/g, profile?.location || "");
+  };
+
+  const generateWhatsAppLink = (templateType: string) => {
+    if (!nextAppointment) return null;
+    
+    const client = clients.find((c) => c.id === nextAppointment.client_id);
+    const phone = formatPhoneForWhatsApp(client?.phone);
+    
+    if (!phone) {
+      return null;
+    }
+
+    const template = messageTemplates[templateType];
+    if (!template) {
+      return null;
+    }
+
+    const message = replaceTemplateVariables(template, nextAppointment, client);
+    const encodedMessage = encodeURIComponent(message);
+    
+    return `https://wa.me/${phone}?text=${encodedMessage}`;
   };
 
   const nextAppointment = todayAppointments.find((apt) => {
@@ -268,7 +322,7 @@ const Home = () => {
               <Clock className="w-5 h-5 mr-2 text-primary" />
               Próximo Atendimento
             </h3>
-            <div className="space-y-2">
+            <div className="space-y-2 mb-4">
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground">Horário:</span>
                 <span className="font-semibold">
@@ -287,6 +341,34 @@ const Home = () => {
                   {getServiceName(nextAppointment.service_id)}
                 </span>
               </div>
+            </div>
+            <div className="flex gap-2">
+              {generateWhatsAppLink("confirmation") ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => {
+                    const link = generateWhatsAppLink("confirmation");
+                    if (link) window.open(link, "_blank");
+                  }}
+                >
+                  Confirmar horário
+                </Button>
+              ) : null}
+              {generateWhatsAppLink("reminder") ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1"
+                  onClick={() => {
+                    const link = generateWhatsAppLink("reminder");
+                    if (link) window.open(link, "_blank");
+                  }}
+                >
+                  Enviar lembrete
+                </Button>
+              ) : null}
             </div>
           </Card>
         )}
