@@ -209,7 +209,7 @@ const Configuracoes = () => {
                     Horários de Agendamento via link
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Configure horários disponíveis para clientes
+                    em breve
                   </p>
                 </div>
               </div>
