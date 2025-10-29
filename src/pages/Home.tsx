@@ -240,7 +240,12 @@ const Home = () => {
                 </div>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 z-50 bg-background" align="center">
+            <PopoverContent 
+              className="w-auto p-0 z-50 bg-background" 
+              align="center"
+              sideOffset={5}
+              alignOffset={0}
+            >
               <CalendarComponent
                 mode="single"
                 selected={selectedDate}
