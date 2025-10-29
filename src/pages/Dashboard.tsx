@@ -343,29 +343,6 @@ const Dashboard = () => {
           )}
         </Card>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <Card className="p-4 sm:p-6 border-border/50 shadow-lg">
-            <div>
-              <p className="text-sm text-muted-foreground">Hoje</p>
-              <h3 className="text-2xl font-bold text-foreground">0</h3>
-            </div>
-          </Card>
-
-          <Card className="p-4 sm:p-6 border-border/50 shadow-lg">
-            <div>
-              <p className="text-sm text-muted-foreground">Clientes</p>
-              <h3 className="text-2xl font-bold text-foreground">0</h3>
-            </div>
-          </Card>
-
-          <Card className="p-4 sm:p-6 border-border/50 shadow-lg">
-            <div>
-              <p className="text-sm text-muted-foreground">Esta Semana</p>
-              <h3 className="text-2xl font-bold text-foreground">0</h3>
-            </div>
-          </Card>
-        </div>
-
         {/* Booking Link Section */}
         <Card className="p-4 sm:p-6 border-border/50 shadow-lg mt-6">
           <div className="flex items-center justify-between">
