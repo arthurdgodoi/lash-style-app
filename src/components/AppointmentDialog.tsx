@@ -284,6 +284,37 @@ export const AppointmentDialog = ({
     fetchServices();
   };
 
+  const handleCancelAppointment = async () => {
+    if (!appointmentId) return;
+    
+    try {
+      setLoading(true);
+      
+      const { error } = await supabase
+        .from("appointments")
+        .update({ status: "cancelled" })
+        .eq("id", appointmentId);
+        
+      if (error) throw error;
+      
+      toast({
+        title: "Sucesso!",
+        description: "Agendamento cancelado com sucesso.",
+      });
+      
+      onSuccess();
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -599,10 +630,20 @@ export const AppointmentDialog = ({
                   onClick={() => onOpenChange(false)}
                   disabled={loading}
                 >
-                  Cancelar
+                  Fechar
                 </Button>
+                {appointmentId && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={handleCancelAppointment}
+                    disabled={loading}
+                  >
+                    Cancelar Agendamento
+                  </Button>
+                )}
                 <Button type="submit" disabled={loading}>
-                  {loading ? "Salvando..." : "Criar Agendamento"}
+                  {loading ? "Salvando..." : appointmentId ? "Salvar Alterações" : "Criar Agendamento"}
                 </Button>
               </div>
             </form>

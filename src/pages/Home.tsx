@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { AppointmentDialog } from "@/components/AppointmentDialog";
 
 const Home = () => {
   const [user, setUser] = useState<any>(null);
@@ -23,6 +24,8 @@ const Home = () => {
   const [todayRevenue, setTodayRevenue] = useState(0);
   const [loading, setLoading] = useState(true);
   const [messageTemplates, setMessageTemplates] = useState<any>({});
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -179,6 +182,19 @@ const Home = () => {
 
   const handleToday = () => {
     setSelectedDate(new Date());
+  };
+
+  const handleAppointmentClick = (appointmentId: string) => {
+    setSelectedAppointmentId(appointmentId);
+    setIsAppointmentDialogOpen(true);
+  };
+
+  const handleAppointmentClose = () => {
+    setIsAppointmentDialogOpen(false);
+    setSelectedAppointmentId(null);
+    if (user) {
+      fetchTodayData(user.id, selectedDate);
+    }
   };
 
   return (
@@ -375,7 +391,8 @@ const Home = () => {
               {todayAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                  onClick={() => handleAppointmentClick(appointment.id)}
+                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
                 >
                   <div className="flex items-center space-x-3">
                     <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
@@ -410,6 +427,15 @@ const Home = () => {
       </main>
 
       <BottomNav />
+
+      {isAppointmentDialogOpen && selectedAppointmentId && (
+        <AppointmentDialog
+          open={isAppointmentDialogOpen}
+          onOpenChange={setIsAppointmentDialogOpen}
+          appointmentId={selectedAppointmentId}
+          onSuccess={handleAppointmentClose}
+        />
+      )}
     </div>
   );
 };
