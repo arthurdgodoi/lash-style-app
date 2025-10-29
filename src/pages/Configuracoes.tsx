@@ -195,13 +195,12 @@ const Configuracoes = () => {
             </div>
           </Card>
 
-          <Card className="p-6 border-border/50 shadow-lg">
+          <Card className="p-6 border-border/50 shadow-lg opacity-60">
             <div 
-              className="flex items-center justify-between cursor-pointer group"
-              onClick={() => navigate("/horarios-agendamento")}
+              className="flex items-center justify-between"
             >
               <div className="flex items-center gap-4">
-                <div className="p-4 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
+                <div className="p-4 bg-primary/10 rounded-xl">
                   <Calendar className="w-8 h-8 text-primary" />
                 </div>
                 <div>
@@ -213,7 +212,6 @@ const Configuracoes = () => {
                   </p>
                 </div>
               </div>
-              <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
             </div>
             
             {profile?.booking_slug && (
