@@ -75,7 +75,7 @@ const ModelosMensagem = () => {
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">Modelos de Mensagem</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Modelos de Mensagem</h2>
           <p className="text-muted-foreground">
             Configure mensagens automáticas para seus clientes
           </p>
@@ -86,7 +86,7 @@ const ModelosMensagem = () => {
             <div className="flex items-start gap-3">
               <Info className="w-5 h-5 text-primary mt-0.5" />
               <div>
-                <CardTitle className="text-lg">Variáveis Disponíveis</CardTitle>
+                <CardTitle className="text-base md:text-lg">Variáveis Disponíveis</CardTitle>
                 <CardDescription>
                   Use estas variáveis em suas mensagens. Elas serão substituídas automaticamente pelos dados reais.
                   <br />

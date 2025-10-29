@@ -78,7 +78,7 @@ const Configuracoes = () => {
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">Configurações</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">Configurações</h2>
           <p className="text-muted-foreground">
             Personalize suas preferências e dados
           </p>
@@ -95,7 +95,7 @@ const Configuracoes = () => {
                   <Users className="w-8 h-8 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-foreground mb-1">
+                  <h3 className="text-lg md:text-xl font-semibold text-foreground mb-1">
                     Clientes
                   </h3>
                   <p className="text-sm text-muted-foreground">
@@ -117,7 +117,7 @@ const Configuracoes = () => {
                   <Briefcase className="w-8 h-8 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-foreground mb-1">
+                  <h3 className="text-lg md:text-xl font-semibold text-foreground mb-1">
                     Serviços
                   </h3>
                   <p className="text-sm text-muted-foreground">
@@ -139,7 +139,7 @@ const Configuracoes = () => {
                   <Clock className="w-8 h-8 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-foreground mb-1">
+                  <h3 className="text-lg md:text-xl font-semibold text-foreground mb-1">
                     Horário de Expediente
                   </h3>
                   <p className="text-sm text-muted-foreground">
@@ -161,7 +161,7 @@ const Configuracoes = () => {
                   <MessageSquare className="w-8 h-8 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-foreground mb-1">
+                  <h3 className="text-lg md:text-xl font-semibold text-foreground mb-1">
                     Modelos de Mensagem
                   </h3>
                   <p className="text-sm text-muted-foreground">
@@ -183,7 +183,7 @@ const Configuracoes = () => {
                   <Calendar className="w-8 h-8 text-primary" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold text-foreground mb-1">
+                  <h3 className="text-lg md:text-xl font-semibold text-foreground mb-1">
                     Horários de Agendamento via link
                   </h3>
                   <p className="text-sm text-muted-foreground">

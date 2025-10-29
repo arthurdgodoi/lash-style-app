@@ -144,10 +144,10 @@ const Home = () => {
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground mb-2">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
             Olá, {profile?.full_name || "usuário"}!
           </h2>
-          <p className="text-lg text-muted-foreground border-b-2 border-primary pb-2 inline-block">
+          <p className="text-base md:text-lg text-muted-foreground border-b-2 border-primary pb-2 inline-block">
             Bem-vindo ao seu painel de agendamentos
           </p>
         </div>
@@ -164,10 +164,10 @@ const Home = () => {
           </Button>
           
           <div className="text-center min-w-[200px]">
-            <div className="text-lg font-semibold text-foreground">
+            <div className="text-base md:text-lg font-semibold text-foreground">
               {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
             </div>
-            <div className="text-sm text-muted-foreground capitalize border-b-2 border-primary pb-1 inline-block">
+            <div className="text-xs md:text-sm text-muted-foreground capitalize border-b-2 border-primary pb-1 inline-block">
               {format(selectedDate, "EEEE", { locale: ptBR })}
             </div>
           </div>
@@ -200,7 +200,7 @@ const Home = () => {
             <div className="mb-2">
               <span className="text-sm text-muted-foreground">Hoje</span>
             </div>
-            <p className="text-2xl font-bold">{todayAppointments.length}</p>
+            <p className="text-xl md:text-2xl font-bold">{todayAppointments.length}</p>
             <p className="text-xs text-muted-foreground">Agendamentos</p>
           </Card>
 
@@ -208,7 +208,7 @@ const Home = () => {
             <div className="mb-2">
               <span className="text-sm text-muted-foreground">Concluídos</span>
             </div>
-            <p className="text-2xl font-bold">{completedCount}</p>
+            <p className="text-xl md:text-2xl font-bold">{completedCount}</p>
             <p className="text-xs text-muted-foreground">Atendimentos</p>
           </Card>
 
@@ -216,7 +216,7 @@ const Home = () => {
             <div className="mb-2">
               <span className="text-sm text-muted-foreground">Pendentes</span>
             </div>
-            <p className="text-2xl font-bold">{scheduledCount}</p>
+            <p className="text-xl md:text-2xl font-bold">{scheduledCount}</p>
             <p className="text-xs text-muted-foreground">A realizar</p>
           </Card>
 
@@ -224,7 +224,7 @@ const Home = () => {
             <div className="mb-2">
               <span className="text-sm text-muted-foreground">Faturamento</span>
             </div>
-            <p className="text-2xl font-bold">
+            <p className="text-xl md:text-2xl font-bold">
               R$ {todayRevenue.toFixed(2)}
             </p>
             <p className="text-xs text-muted-foreground">Hoje</p>
@@ -234,7 +234,7 @@ const Home = () => {
         {/* Next Appointment */}
         {nextAppointment && (
           <Card className="p-6 mb-8 border-primary">
-            <h3 className="text-lg font-semibold mb-4 flex items-center">
+            <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center">
               <Clock className="w-5 h-5 mr-2 text-primary" />
               Próximo Atendimento
             </h3>
@@ -263,7 +263,7 @@ const Home = () => {
 
         {/* Schedule */}
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center">
+          <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center">
             <Calendar className="w-5 h-5 mr-2" />
             Agendamentos
           </h3>
