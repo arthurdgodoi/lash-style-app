@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import TopNav from "@/components/TopNav";
+import BottomNav from "@/components/BottomNav";
 import { toast } from "sonner";
 import { Clock, Plus, Trash2, Copy, Link2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -206,7 +207,7 @@ const HorariosAgendamento = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-background via-muted/30 to-background overflow-x-hidden">
+    <div className="min-h-screen w-full bg-gradient-to-br from-background via-muted/30 to-background overflow-x-hidden pb-20 md:pb-0">
       <TopNav />
 
       <main className="w-full max-w-4xl mx-auto px-4 py-6">
@@ -335,6 +336,8 @@ const HorariosAgendamento = () => {
           </Card>
         </div>
       </main>
+      
+      <BottomNav />
     </div>
   );
 };

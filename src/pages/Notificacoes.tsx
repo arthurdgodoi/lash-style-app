@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Bell } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TopNav from "@/components/TopNav";
+import BottomNav from "@/components/BottomNav";
 import { cn } from "@/lib/utils";
 
 const Notificacoes = () => {
@@ -129,7 +130,7 @@ const Notificacoes = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background pb-20 md:pb-0">
       <TopNav />
 
       <main className="container mx-auto px-4 py-8">
@@ -201,6 +202,8 @@ const Notificacoes = () => {
           </div>
         )}
       </main>
+      
+      <BottomNav />
     </div>
   );
 };

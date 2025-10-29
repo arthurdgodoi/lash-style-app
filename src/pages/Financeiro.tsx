@@ -11,6 +11,7 @@ import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, end
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import TopNav from "@/components/TopNav";
+import BottomNav from "@/components/BottomNav";
 import ExpenseDialog from "@/components/ExpenseDialog";
 import { toast } from "sonner";
 
@@ -253,7 +254,7 @@ const Financeiro = () => {
   const profit = totalRevenue - totalExpenses;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background pb-20 md:pb-0">
       <TopNav />
 
       <main className="container mx-auto px-4 py-8">
@@ -664,6 +665,8 @@ const Financeiro = () => {
         onOpenChange={setExpenseDialogOpen}
         onSuccess={fetchFinancialData}
       />
+      
+      <BottomNav />
     </div>
   );
 };

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import TopNav from "@/components/TopNav";
+import BottomNav from "@/components/BottomNav";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -171,7 +172,7 @@ const HorarioExpediente = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background pb-20 md:pb-0">
       <TopNav />
 
       <main className="container mx-auto px-4 py-8">
@@ -239,6 +240,8 @@ const HorarioExpediente = () => {
           </div>
         </Card>
       </main>
+      
+      <BottomNav />
     </div>
   );
 };

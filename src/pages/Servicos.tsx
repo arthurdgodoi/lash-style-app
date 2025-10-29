@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Briefcase, Plus, Pencil, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TopNav from "@/components/TopNav";
+import BottomNav from "@/components/BottomNav";
 import ServiceDialog from "@/components/ServiceDialog";
 
 const Servicos = () => {
@@ -115,7 +116,7 @@ const Servicos = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background pb-20 md:pb-0">
       <TopNav />
 
       <main className="container mx-auto px-4 py-8">
@@ -224,6 +225,8 @@ const Servicos = () => {
         onSuccess={fetchServices}
         service={selectedService}
       />
+      
+      <BottomNav />
     </div>
   );
 };

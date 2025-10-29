@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import TopNav from "@/components/TopNav";
+import BottomNav from "@/components/BottomNav";
 
 const Perfil = () => {
   const navigate = useNavigate();
@@ -55,17 +56,18 @@ const Perfil = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-screen bg-background pb-20 md:pb-0">
         <TopNav />
         <div className="container mx-auto px-4 py-8">
           <p className="text-muted-foreground">Carregando...</p>
         </div>
+        <BottomNav />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-20 md:pb-0">
       <TopNav />
       <div className="container mx-auto px-4 py-8">
         <Button
@@ -133,6 +135,8 @@ const Perfil = () => {
           </Card>
         </div>
       </div>
+      
+      <BottomNav />
     </div>
   );
 };

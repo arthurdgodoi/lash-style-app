@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Users, Plus, Pencil, Trash2, Mail, Phone, Calendar, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import TopNav from "@/components/TopNav";
+import BottomNav from "@/components/BottomNav";
 import ClientDialog from "@/components/ClientDialog";
 import { ClientHistoryDialog } from "@/components/ClientHistoryDialog";
 
@@ -120,7 +121,7 @@ const Clientes = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background pb-20 md:pb-0">
       <TopNav />
 
       <main className="container mx-auto px-4 py-8">
@@ -245,6 +246,8 @@ const Clientes = () => {
         onOpenChange={setHistoryDialogOpen}
         client={historyClient}
       />
+      
+      <BottomNav />
     </div>
   );
 };
