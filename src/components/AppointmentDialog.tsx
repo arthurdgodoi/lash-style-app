@@ -425,7 +425,12 @@ export const AppointmentDialog = ({
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
+                      <PopoverContent 
+                        className="w-auto p-0" 
+                        align="start"
+                        sideOffset={5}
+                        alignOffset={-10}
+                      >
                         <Calendar
                           mode="single"
                           selected={field.value}
