@@ -31,7 +31,10 @@ import { Switch } from "@/components/ui/switch";
 
 const serviceSchema = z.object({
   name: z.string().trim().min(1, "Nome é obrigatório").max(100, "Nome muito longo"),
-  duration_minutes: z.coerce.number().min(1, "Duração deve ser maior que 0").max(1440, "Duração máxima é 1440 minutos"),
+  duration_minutes: z.preprocess(
+    (val) => val === "" || val === null || val === undefined ? undefined : Number(val),
+    z.number().min(1, "Duração deve ser maior que 0").max(1440, "Duração máxima é 1440 minutos").optional()
+  ),
   price_mode: z.enum(["fixed", "free", "range"], {
     required_error: "Selecione um modo de preço",
   }),
@@ -110,7 +113,7 @@ const ServiceDialog = ({ open, onOpenChange, onSuccess, service }: ServiceDialog
 
       const serviceData = {
         name: data.name,
-        duration_minutes: data.duration_minutes,
+        duration_minutes: data.duration_minutes ?? null,
         price_mode: data.price_mode,
         is_active: data.is_active,
         user_id: user.id,
@@ -186,9 +189,9 @@ const ServiceDialog = ({ open, onOpenChange, onSuccess, service }: ServiceDialog
               name="duration_minutes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Duração (minutos) *</FormLabel>
+                  <FormLabel>Duração (minutos)</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="90" {...field} />
+                    <Input type="number" placeholder="90" {...field} value={field.value ?? ""} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
