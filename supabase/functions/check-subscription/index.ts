@@ -47,9 +47,42 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
     
     if (customers.data.length === 0) {
-      logStep("No Stripe customer found");
+      logStep("No Stripe customer found, checking local subscription");
       
-      // Update local subscription to reflect no active subscription
+      // Check if there's an active subscription in the local database
+      const { data: localSub } = await supabaseClient
+        .from("user_subscriptions")
+        .select("status, plan_id, current_period_end")
+        .eq("user_id", user.id)
+        .single();
+      
+      if (localSub && (localSub.status === 'active' || localSub.status === 'trialing')) {
+        logStep("Active local subscription found", { status: localSub.status, plan_id: localSub.plan_id });
+        
+        // Get product_id from plan
+        let productId = null;
+        if (localSub.plan_id) {
+          const { data: plan } = await supabaseClient
+            .from("subscription_plans")
+            .select("stripe_product_id")
+            .eq("id", localSub.plan_id)
+            .single();
+          productId = plan?.stripe_product_id || null;
+        }
+        
+        return new Response(JSON.stringify({ 
+          subscribed: true,
+          product_id: productId,
+          subscription_end: localSub.current_period_end 
+        }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+      
+      logStep("No active local subscription found");
+      
+      // No active subscription anywhere
       await supabaseClient
         .from("user_subscriptions")
         .upsert({
