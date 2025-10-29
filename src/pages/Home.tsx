@@ -2,15 +2,17 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Calendar, Clock, User, DollarSign, TrendingUp } from "lucide-react";
+import { Calendar, Clock, User, DollarSign, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
 import TopNav from "@/components/TopNav";
 import BottomNav from "@/components/BottomNav";
-import { format, startOfDay, endOfDay } from "date-fns";
+import { format, startOfDay, endOfDay, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
 
 const Home = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -30,7 +32,7 @@ const Home = () => {
       }
 
       setUser(session.user);
-      fetchTodayData(session.user.id);
+      fetchTodayData(session.user.id, new Date());
     };
 
     checkUser();
@@ -42,18 +44,23 @@ const Home = () => {
         navigate("/auth");
       } else {
         setUser(session.user);
-        fetchTodayData(session.user.id);
+        fetchTodayData(session.user.id, new Date());
       }
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const fetchTodayData = async (userId: string) => {
+  useEffect(() => {
+    if (user) {
+      fetchTodayData(user.id, selectedDate);
+    }
+  }, [selectedDate]);
+
+  const fetchTodayData = async (userId: string, date: Date) => {
     setLoading(true);
     try {
-      const today = new Date();
-      const dateStr = format(today, "yyyy-MM-dd");
+      const dateStr = format(date, "yyyy-MM-dd");
 
       // Fetch user profile
       const { data: profileData } = await supabase
@@ -119,6 +126,18 @@ const Home = () => {
   const completedCount = todayAppointments.filter((apt) => apt.status === "completed").length;
   const scheduledCount = todayAppointments.filter((apt) => apt.status === "scheduled").length;
 
+  const handlePreviousDay = () => {
+    setSelectedDate(subDays(selectedDate, 1));
+  };
+
+  const handleNextDay = () => {
+    setSelectedDate(addDays(selectedDate, 1));
+  };
+
+  const handleToday = () => {
+    setSelectedDate(new Date());
+  };
+
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <TopNav />
@@ -132,6 +151,48 @@ const Home = () => {
             Bem-vindo ao seu painel de agendamentos
           </p>
         </div>
+
+        {/* Date Navigation */}
+        <div className="mb-6 flex items-center justify-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={handlePreviousDay}
+            className="h-10 w-10"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          
+          <div className="text-center min-w-[200px]">
+            <div className="text-lg font-semibold text-foreground">
+              {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+            </div>
+            <div className="text-sm text-muted-foreground capitalize border-b-2 border-primary pb-1 inline-block">
+              {format(selectedDate, "EEEE", { locale: ptBR })}
+            </div>
+          </div>
+
+          <Button 
+            variant="ghost" 
+            size="icon"
+            onClick={handleNextDay}
+            className="h-10 w-10"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {format(selectedDate, "yyyy-MM-dd") !== format(new Date(), "yyyy-MM-dd") && (
+          <div className="mb-6 text-center">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={handleToday}
+            >
+              Voltar para Hoje
+            </Button>
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
@@ -200,18 +261,18 @@ const Home = () => {
           </Card>
         )}
 
-        {/* Today's Schedule */}
+        {/* Schedule */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4 flex items-center">
             <Calendar className="w-5 h-5 mr-2" />
-            Agenda de Hoje
+            Agendamentos
           </h3>
           
           {loading ? (
             <p className="text-center text-muted-foreground py-8">Carregando...</p>
           ) : todayAppointments.length === 0 ? (
             <p className="text-center text-muted-foreground py-8">
-              Nenhum agendamento para hoje
+              Nenhum agendamento para esta data
             </p>
           ) : (
             <div className="space-y-3">
