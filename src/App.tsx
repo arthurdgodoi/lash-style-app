@@ -16,6 +16,7 @@ import AgendamentoPublico from "./pages/AgendamentoPublico";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Perfil from "./pages/Perfil";
+import ModelosMensagem from "./pages/ModelosMensagem";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => {
             <Route path="/notificacoes" element={<Notificacoes />} />
             <Route path="/horario-expediente" element={<HorarioExpediente />} />
             <Route path="/horarios-agendamento" element={<HorariosAgendamento />} />
+            <Route path="/modelos-mensagem" element={<ModelosMensagem />} />
             <Route path="/agendar/:slug" element={<AgendamentoPublico />} />
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/auth" element={<Auth />} />
