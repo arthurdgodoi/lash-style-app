@@ -8,6 +8,9 @@ import BottomNav from "@/components/BottomNav";
 import { format, startOfDay, endOfDay, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 const Home = () => {
   const [user, setUser] = useState<any>(null);
@@ -163,14 +166,35 @@ const Home = () => {
             <ChevronLeft className="h-5 w-5" />
           </Button>
           
-          <div className="text-center min-w-[200px]">
-            <div className="text-base md:text-lg font-semibold text-foreground">
-              {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-            </div>
-            <div className="text-xs md:text-sm text-muted-foreground capitalize border-b-2 border-primary pb-1 inline-block">
-              {format(selectedDate, "EEEE", { locale: ptBR })}
-            </div>
-          </div>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "min-w-[200px] justify-center text-center font-normal px-4"
+                )}
+              >
+                <div className="flex flex-col items-center">
+                  <div className="text-base md:text-lg font-semibold">
+                    {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  </div>
+                  <div className="text-xs md:text-sm text-muted-foreground capitalize">
+                    {format(selectedDate, "EEEE", { locale: ptBR })}
+                  </div>
+                </div>
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0 z-50 bg-background" align="center">
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                initialFocus
+                className="pointer-events-auto"
+                locale={ptBR}
+              />
+            </PopoverContent>
+          </Popover>
 
           <Button 
             variant="ghost" 
