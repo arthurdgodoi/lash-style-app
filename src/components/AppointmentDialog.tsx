@@ -221,6 +221,28 @@ export const AppointmentDialog = ({
         throw new Error("Usuário não autenticado");
       }
 
+      // Verificar limite apenas para novos agendamentos
+      if (!appointmentId) {
+        const { data: canCreate, error: limitError } = await supabase.rpc('check_subscription_limit', {
+          _user_id: user.id,
+          _limit_type: 'appointments'
+        });
+
+        if (limitError) {
+          console.error("Error checking limit:", limitError);
+        }
+
+        if (!canCreate) {
+          toast({
+            title: "Limite atingido",
+            description: "Você atingiu o limite de agendamentos do seu plano. Faça upgrade para continuar.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
       const appointmentData = {
         user_id: user.id,
         client_id: values.client_id,

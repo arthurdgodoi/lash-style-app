@@ -88,6 +88,28 @@ const ClientDialog = ({ open, onOpenChange, onSuccess, client }: ClientDialogPro
         return;
       }
 
+      // Verificar limite apenas para novos clientes
+      if (!client?.id) {
+        const { data: canCreate, error: limitError } = await supabase.rpc('check_subscription_limit', {
+          _user_id: user.id,
+          _limit_type: 'clients'
+        });
+
+        if (limitError) {
+          console.error("Error checking limit:", limitError);
+        }
+
+        if (!canCreate) {
+          toast({
+            title: "Limite atingido",
+            description: "Você atingiu o limite de clientes do seu plano. Faça upgrade para continuar.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
       const clientData = {
         name: data.name,
         phone: data.phone || null,

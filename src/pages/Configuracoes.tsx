@@ -131,6 +131,28 @@ const Configuracoes = () => {
 
           <Card 
             className="p-6 border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 group"
+            onClick={() => navigate("/assinatura")}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
+                  <Settings className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg md:text-xl font-semibold text-foreground mb-1">
+                    Assinatura
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Gerencie seu plano
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-6 h-6 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+          </Card>
+
+          <Card 
+            className="p-6 border-border/50 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer hover:scale-105 group"
             onClick={() => navigate("/horario-expediente")}
           >
             <div className="flex items-center justify-between">

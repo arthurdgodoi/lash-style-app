@@ -111,6 +111,28 @@ const ServiceDialog = ({ open, onOpenChange, onSuccess, service }: ServiceDialog
         return;
       }
 
+      // Verificar limite apenas para novos serviços
+      if (!service?.id) {
+        const { data: canCreate, error: limitError } = await supabase.rpc('check_subscription_limit', {
+          _user_id: user.id,
+          _limit_type: 'services'
+        });
+
+        if (limitError) {
+          console.error("Error checking limit:", limitError);
+        }
+
+        if (!canCreate) {
+          toast({
+            title: "Limite atingido",
+            description: "Você atingiu o limite de serviços do seu plano. Faça upgrade para continuar.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+      }
+
       const serviceData = {
         name: data.name,
         duration_minutes: data.duration_minutes ?? null,
