@@ -41,6 +41,7 @@ const Financeiro = () => {
   const [newClientsCount, setNewClientsCount] = useState(0);
   const [topServices, setTopServices] = useState<{ name: string; count: number; revenue: number }[]>([]);
   const [topClients, setTopClients] = useState<{ name: string; total: number; count: number }[]>([]);
+  const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
 
   const getDateRange = () => {
     const now = new Date();
@@ -277,7 +278,7 @@ const Financeiro = () => {
           <div className="flex flex-col md:flex-row gap-4 items-start">
             {/* Período Selector - Dropdown Style */}
             <div className="flex-shrink-0 w-full md:w-auto">
-              <Popover>
+              <Popover open={filterPopoverOpen} onOpenChange={setFilterPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button 
                     variant="outline" 
@@ -299,7 +300,7 @@ const Financeiro = () => {
                       className="w-full justify-start"
                       onClick={() => {
                         setFilterType("today");
-                        document.body.click(); // Close popover
+                        setFilterPopoverOpen(false);
                       }}
                     >
                       Hoje
@@ -309,7 +310,7 @@ const Financeiro = () => {
                       className="w-full justify-start"
                       onClick={() => {
                         setFilterType("week");
-                        document.body.click();
+                        setFilterPopoverOpen(false);
                       }}
                     >
                       Esta semana
@@ -319,7 +320,7 @@ const Financeiro = () => {
                       className="w-full justify-start"
                       onClick={() => {
                         setFilterType("month");
-                        document.body.click();
+                        setFilterPopoverOpen(false);
                       }}
                     >
                       Este mês
@@ -329,7 +330,7 @@ const Financeiro = () => {
                       className="w-full justify-start"
                       onClick={() => {
                         setFilterType("custom");
-                        document.body.click();
+                        setFilterPopoverOpen(false);
                       }}
                     >
                       Personalizado
