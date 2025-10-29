@@ -89,6 +89,8 @@ const ModelosMensagem = () => {
                 <CardTitle className="text-lg">Variáveis Disponíveis</CardTitle>
                 <CardDescription>
                   Use estas variáveis em suas mensagens. Elas serão substituídas automaticamente pelos dados reais.
+                  <br />
+                  <strong>Importante:</strong> Os valores de Nome da profissional, Localização e Chave Pix são preenchidos no seu perfil.
                 </CardDescription>
               </div>
             </div>

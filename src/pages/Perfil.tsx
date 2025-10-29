@@ -1,18 +1,24 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, User, Phone, Mail, ArrowLeft } from "lucide-react";
+import { LogOut, User, Phone, Mail, ArrowLeft, MapPin, DollarSign } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import TopNav from "@/components/TopNav";
 import BottomNav from "@/components/BottomNav";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const Perfil = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [professionalName, setProfessionalName] = useState("");
+  const [location, setLocation] = useState("");
+  const [pixKey, setPixKey] = useState("");
 
   useEffect(() => {
     fetchProfile();
@@ -34,6 +40,9 @@ const Perfil = () => {
 
       if (error) throw error;
       setProfile({ ...data, email: user.email });
+      setProfessionalName(data?.professional_name || "");
+      setLocation(data?.location || "");
+      setPixKey(data?.pix_key || "");
     } catch (error: any) {
       toast({
         title: "Erro",
@@ -42,6 +51,38 @@ const Perfil = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          professional_name: professionalName,
+          location: location,
+          pix_key: pixKey,
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Perfil atualizado",
+        description: "Suas informações foram salvas com sucesso.",
+      });
+      
+      setIsEditing(false);
+      fetchProfile();
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -113,6 +154,94 @@ const Perfil = () => {
                     Telefone
                   </label>
                   <p className="text-foreground">{profile.phone}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>Informações para Mensagens</span>
+                {!isEditing && (
+                  <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                    Editar
+                  </Button>
+                )}
+              </CardTitle>
+              <CardDescription>
+                Essas informações serão usadas nos modelos de mensagem
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="professional_name" className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  Nome (usado nas mensagens)
+                </Label>
+                {isEditing ? (
+                  <Input
+                    id="professional_name"
+                    value={professionalName}
+                    onChange={(e) => setProfessionalName(e.target.value)}
+                    placeholder="Digite seu nome profissional"
+                  />
+                ) : (
+                  <p className="text-foreground">{professionalName || "Não informado"}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="location" className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4" />
+                  Localização
+                </Label>
+                {isEditing ? (
+                  <Input
+                    id="location"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="Digite sua localização"
+                  />
+                ) : (
+                  <p className="text-foreground">{location || "Não informado"}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pix_key" className="flex items-center gap-2">
+                  <DollarSign className="w-4 h-4" />
+                  Chave Pix
+                </Label>
+                {isEditing ? (
+                  <Input
+                    id="pix_key"
+                    value={pixKey}
+                    onChange={(e) => setPixKey(e.target.value)}
+                    placeholder="Digite sua chave Pix"
+                  />
+                ) : (
+                  <p className="text-foreground">{pixKey || "Não informado"}</p>
+                )}
+              </div>
+
+              {isEditing && (
+                <div className="flex gap-2">
+                  <Button onClick={handleSaveProfile} className="flex-1">
+                    Salvar
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsEditing(false);
+                      setProfessionalName(profile?.professional_name || "");
+                      setLocation(profile?.location || "");
+                      setPixKey(profile?.pix_key || "");
+                    }}
+                    className="flex-1"
+                  >
+                    Cancelar
+                  </Button>
                 </div>
               )}
             </CardContent>
