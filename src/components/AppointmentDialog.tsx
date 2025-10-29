@@ -40,6 +40,7 @@ import {
 import { CalendarIcon, Plus, Check } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { replaceMessageVariables, createWhatsAppLink } from "@/lib/whatsappUtils";
 import ClientDialog from "./ClientDialog";
 import ServiceDialog from "./ServiceDialog";
 
@@ -324,6 +325,118 @@ export const AppointmentDialog = ({
         description: "Agendamento cancelado com sucesso.",
       });
       
+      onSuccess();
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Erro",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateAndSendWhatsApp = async (values: AppointmentFormValues) => {
+    try {
+      setLoading(true);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error("Usuário não autenticado");
+      }
+
+      // Verificar limite
+      const { data: canCreate, error: limitError } = await supabase.rpc('check_subscription_limit', {
+        _user_id: user.id,
+        _limit_type: 'appointments'
+      });
+
+      if (limitError) {
+        console.error("Error checking limit:", limitError);
+      }
+
+      if (!canCreate) {
+        toast({
+          title: "Limite atingido",
+          description: "Você atingiu o limite de agendamentos do seu plano.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+
+      const appointmentData = {
+        user_id: user.id,
+        client_id: values.client_id,
+        service_id: values.service_id,
+        appointment_date: format(values.appointment_date, "yyyy-MM-dd"),
+        appointment_time: values.appointment_time,
+        price: parseFloat(values.price),
+        include_salon_percentage: values.include_salon_percentage,
+        salon_percentage: values.include_salon_percentage && values.salon_percentage 
+          ? parseFloat(values.salon_percentage) 
+          : null,
+        notes: values.notes || null,
+      };
+
+      // Criar agendamento
+      const { error } = await supabase
+        .from("appointments")
+        .insert(appointmentData);
+
+      if (error) throw error;
+
+      // Buscar dados para construir a mensagem
+      const [clientData, profileData, serviceData, templateData] = await Promise.all([
+        supabase.from("clients").select("name, phone").eq("id", values.client_id).single(),
+        supabase.from("profiles").select("professional_name, location, pix_key").eq("id", user.id).single(),
+        supabase.from("services").select("name").eq("id", values.service_id).single(),
+        supabase.from("message_templates").select("message").eq("user_id", user.id).eq("template_type", "scheduled").single(),
+      ]);
+
+      if (clientData.error) throw clientData.error;
+      if (!clientData.data.phone) {
+        toast({
+          title: "Aviso",
+          description: "Cliente não possui telefone cadastrado.",
+          variant: "destructive",
+        });
+        setLoading(false);
+        onSuccess();
+        onOpenChange(false);
+        return;
+      }
+
+      // Construir a mensagem
+      const horarioFormatado = `${format(values.appointment_date, "dd/MM/yyyy")} às ${values.appointment_time}`;
+      
+      let message = "";
+      if (templateData.data && templateData.data.message) {
+        message = replaceMessageVariables(templateData.data.message, {
+          nome_cliente: clientData.data.name,
+          nome_profissional: profileData.data?.professional_name || "profissional",
+          horario_agendamento: horarioFormatado,
+          chave_pix: profileData.data?.pix_key || "",
+          valor: `R$ ${values.price}`,
+          localizacao: profileData.data?.location || "",
+        });
+      } else {
+        // Mensagem padrão se não houver template
+        message = `Olá ${clientData.data.name}! Seu horário foi agendado para ${horarioFormatado}.`;
+      }
+
+      // Abrir WhatsApp
+      const whatsappLink = createWhatsAppLink(clientData.data.phone, message);
+      window.open(whatsappLink, "_blank");
+
+      toast({
+        title: "Sucesso!",
+        description: "Agendamento criado! Enviando mensagem no WhatsApp...",
+      });
+
+      form.reset();
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
@@ -658,7 +771,6 @@ export const AppointmentDialog = ({
                    disabled={loading}
                    className="min-w-[80px]"
                  >
-
                   Fechar
                 </Button>
                 {appointmentId && (
@@ -669,8 +781,18 @@ export const AppointmentDialog = ({
                      disabled={loading}
                      className="text-sm whitespace-nowrap"
                    >
-
                     Cancelar Agendamento
+                  </Button>
+                )}
+                {!appointmentId && (
+                  <Button 
+                    type="button"
+                    onClick={() => form.handleSubmit(handleCreateAndSendWhatsApp)()}
+                    disabled={loading}
+                    variant="secondary"
+                    className="text-sm whitespace-nowrap"
+                  >
+                    Agendar e Enviar no WhatsApp
                   </Button>
                 )}
                 <Button type="submit" disabled={loading} className="text-sm whitespace-nowrap">
