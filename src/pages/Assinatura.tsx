@@ -17,6 +17,7 @@ interface Plan {
   id: string;
   name: string;
   description: string;
+  stripe_price_id: string;
   price_monthly: number;
   max_appointments_per_month: number | null;
   max_clients: number | null;
@@ -84,11 +85,81 @@ const Assinatura = () => {
     }
   };
 
-  const handleUpgrade = async (planId: string) => {
-    toast.info("Funcionalidade de pagamento em desenvolvimento", {
-      description: "Em breve você poderá assinar diretamente aqui!"
-    });
+  const handleUpgrade = async (plan: Plan) => {
+    if (subscription?.planName === plan.name) {
+      toast.info("Você já está neste plano");
+      return;
+    }
+
+    try {
+      toast.loading("Redirecionando para pagamento...");
+      
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: { priceId: plan.stripe_price_id }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("URL de checkout não retornada");
+      }
+    } catch (error: any) {
+      console.error("Error creating checkout:", error);
+      toast.error("Erro ao criar sessão de pagamento", {
+        description: error.message || "Tente novamente"
+      });
+    }
   };
+
+  const handleManageSubscription = async () => {
+    try {
+      toast.loading("Abrindo portal de gerenciamento...");
+      
+      const { data, error } = await supabase.functions.invoke('customer-portal');
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      } else {
+        throw new Error("URL do portal não retornada");
+      }
+    } catch (error: any) {
+      console.error("Error opening portal:", error);
+      toast.error("Erro ao abrir portal", {
+        description: error.message || "Tente novamente"
+      });
+    }
+  };
+
+  // Check subscription on mount and after payment
+  useEffect(() => {
+    if (!user) return;
+
+    const checkSub = async () => {
+      try {
+        await supabase.functions.invoke('check-subscription');
+        refresh();
+      } catch (error) {
+        console.error("Error checking subscription:", error);
+      }
+    };
+
+    checkSub();
+
+    // Check for success/cancel params
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      toast.success("Assinatura ativada com sucesso!");
+      checkSub();
+      window.history.replaceState({}, '', '/assinatura');
+    } else if (params.get('canceled') === 'true') {
+      toast.info("Pagamento cancelado");
+      window.history.replaceState({}, '', '/assinatura');
+    }
+  }, [user]);
 
   const formatLimit = (limit: number | null) => {
     return limit === null ? "Ilimitado" : limit.toString();
@@ -136,9 +207,16 @@ const Assinatura = () => {
                     )}
                   </CardDescription>
                 </div>
-                <Badge variant={subscription.status === 'active' ? 'default' : 'secondary'}>
-                  {subscription.status === 'trialing' ? 'Trial' : subscription.status}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={subscription.status === 'active' ? 'default' : 'secondary'}>
+                    {subscription.status === 'trialing' ? 'Trial' : subscription.status}
+                  </Badge>
+                  {subscription.status === 'active' && (
+                    <Button variant="outline" size="sm" onClick={handleManageSubscription}>
+                      Gerenciar
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -242,7 +320,8 @@ const Assinatura = () => {
                   <Button 
                     className="w-full" 
                     variant={plan.is_featured ? "default" : "outline"}
-                    onClick={() => handleUpgrade(plan.id)}
+                    onClick={() => handleUpgrade(plan)}
+                    disabled={subscription?.planName === plan.name}
                   >
                     {subscription?.planName === plan.name ? 'Plano Atual' : 'Escolher Plano'}
                   </Button>
