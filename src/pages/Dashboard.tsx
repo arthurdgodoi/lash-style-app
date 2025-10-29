@@ -7,6 +7,7 @@ import { Calendar as CalendarIcon, Users, Clock, Plus, Link2, Copy } from "lucid
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import TopNav from "@/components/TopNav";
+import BottomNav from "@/components/BottomNav";
 import { AppointmentDialog } from "@/components/AppointmentDialog";
 import { BlockSlotDialog } from "@/components/BlockSlotDialog";
 import { DayScheduleView } from "@/components/DayScheduleView";
@@ -227,7 +228,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background pb-20 md:pb-0">
       <TopNav />
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
@@ -399,6 +400,8 @@ const Dashboard = () => {
           defaultDate={selectedDate}
         />
       </main>
+      
+      <BottomNav />
     </div>
   );
 };

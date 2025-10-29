@@ -133,7 +133,7 @@ const TopNav = () => {
   };
 
   const navItems = [
-    { path: "/", label: "Agenda", icon: Calendar },
+    { path: "/agenda", label: "Agenda", icon: Calendar },
     { path: "/financeiro", label: "Financeiro", icon: DollarSign },
   ];
 
@@ -255,28 +255,6 @@ const TopNav = () => {
             </Button>
           </div>
         </div>
-
-        <nav className="md:hidden grid grid-cols-2 gap-2 mt-4">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
-            return (
-              <Link key={item.path} to={item.path}>
-                <Button
-                  variant={isActive ? "default" : "ghost"}
-                  size="sm"
-                  className={cn(
-                    "gap-2 w-full",
-                    isActive && "shadow-sm"
-                  )}
-                >
-                  <Icon className="w-4 h-4" />
-                  {item.label}
-                </Button>
-              </Link>
-            );
-          })}
-        </nav>
       </div>
     </header>
   );

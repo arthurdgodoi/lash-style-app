@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Settings, Users, Briefcase, ChevronRight, Clock, Calendar, Link2, Copy } from "lucide-react";
 import TopNav from "@/components/TopNav";
+import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -72,7 +73,7 @@ const Configuracoes = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background pb-20 md:pb-0">
       <TopNav />
 
       <main className="container mx-auto px-4 py-8">
@@ -210,6 +211,8 @@ const Configuracoes = () => {
           </div>
         </Card>
       </main>
+      
+      <BottomNav />
     </div>
   );
 };
