@@ -301,38 +301,23 @@ const Dashboard = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card className="p-4 sm:p-6 border-border/50 shadow-lg">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <CalendarIcon className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Hoje</p>
-                <h3 className="text-2xl font-bold text-foreground">0</h3>
-              </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Hoje</p>
+              <h3 className="text-2xl font-bold text-foreground">0</h3>
             </div>
           </Card>
 
           <Card className="p-4 sm:p-6 border-border/50 shadow-lg">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <Users className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Clientes</p>
-                <h3 className="text-2xl font-bold text-foreground">0</h3>
-              </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Clientes</p>
+              <h3 className="text-2xl font-bold text-foreground">0</h3>
             </div>
           </Card>
 
           <Card className="p-4 sm:p-6 border-border/50 shadow-lg">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary/10 rounded-xl">
-                <Clock className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Esta Semana</p>
-                <h3 className="text-2xl font-bold text-foreground">0</h3>
-              </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Esta Semana</p>
+              <h3 className="text-2xl font-bold text-foreground">0</h3>
             </div>
           </Card>
         </div>
