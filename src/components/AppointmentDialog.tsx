@@ -318,7 +318,7 @@ export const AppointmentDialog = ({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto overflow-x-hidden">
           <DialogHeader>
             <DialogTitle>{appointmentId ? "Editar Agendamento" : "Novo Agendamento"}</DialogTitle>
           </DialogHeader>
@@ -628,26 +628,30 @@ export const AppointmentDialog = ({
                 )}
               />
 
-              <div className="flex gap-2 justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
-                  disabled={loading}
-                >
+              <div className="flex flex-wrap gap-2 justify-end">
+                 <Button
+                   type="button"
+                   variant="outline"
+                   onClick={() => onOpenChange(false)}
+                   disabled={loading}
+                   className="min-w-[80px]"
+                 >
+
                   Fechar
                 </Button>
                 {appointmentId && (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    onClick={handleCancelAppointment}
-                    disabled={loading}
-                  >
+                   <Button
+                     type="button"
+                     variant="destructive"
+                     onClick={handleCancelAppointment}
+                     disabled={loading}
+                     className="text-sm whitespace-nowrap"
+                   >
+
                     Cancelar Agendamento
                   </Button>
                 )}
-                <Button type="submit" disabled={loading}>
+                <Button type="submit" disabled={loading} className="text-sm whitespace-nowrap">
                   {loading ? "Salvando..." : appointmentId ? "Salvar Alterações" : "Criar Agendamento"}
                 </Button>
               </div>
