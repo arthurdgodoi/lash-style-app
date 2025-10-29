@@ -89,42 +89,38 @@ const ModelosMensagem = () => {
     }
   };
 
-  const handleSave = async () => {
+  const handleSaveTemplate = async (templateType: string, message: string) => {
     if (!user) return;
 
     try {
-      const templates = [
-        { template_type: "scheduled", message: scheduledMessage },
-        { template_type: "confirmation", message: confirmationMessage },
-        { template_type: "reminder", message: reminderMessage },
-      ];
-
-      for (const template of templates) {
-        if (template.message.trim()) {
-          await supabase
-            .from("message_templates")
-            .upsert(
-              {
-                user_id: user.id,
-                template_type: template.template_type,
-                message: template.message,
-              },
-              { onConflict: "user_id,template_type" }
-            );
-        }
+      setLoading(true);
+      
+      if (message.trim()) {
+        await supabase
+          .from("message_templates")
+          .upsert(
+            {
+              user_id: user.id,
+              template_type: templateType,
+              message: message,
+            },
+            { onConflict: "user_id,template_type" }
+          );
       }
 
       toast({
-        title: "Mensagens salvas",
-        description: "Seus modelos de mensagem foram salvos com sucesso.",
+        title: "Mensagem salva",
+        description: "Seu modelo de mensagem foi salvo com sucesso.",
       });
     } catch (error) {
-      console.error("Error saving templates:", error);
+      console.error("Error saving template:", error);
       toast({
         title: "Erro ao salvar",
-        description: "Ocorreu um erro ao salvar seus modelos de mensagem.",
+        description: "Ocorreu um erro ao salvar seu modelo de mensagem.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -182,15 +178,25 @@ const ModelosMensagem = () => {
                 Mensagem enviada imediatamente após o agendamento ser confirmado
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Label htmlFor="scheduled">Mensagem</Label>
-              <Textarea
-                id="scheduled"
-                placeholder="Ex: Olá {nome_cliente}! Seu horário foi agendado com {nome_profissional} para {horario_agendamento}. Localização: {localizacao}"
-                value={scheduledMessage}
-                onChange={(e) => setScheduledMessage(e.target.value)}
-                className="mt-2 min-h-[120px]"
-              />
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="scheduled">Mensagem</Label>
+                <Textarea
+                  id="scheduled"
+                  placeholder="Ex: Olá {nome_cliente}! Seu horário foi agendado com {nome_profissional} para {horario_agendamento}. Localização: {localizacao}"
+                  value={scheduledMessage}
+                  onChange={(e) => setScheduledMessage(e.target.value)}
+                  className="mt-2 min-h-[120px]"
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button 
+                  onClick={() => handleSaveTemplate("scheduled", scheduledMessage)}
+                  disabled={loading}
+                >
+                  {loading ? "Salvando..." : "Salvar"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -201,15 +207,25 @@ const ModelosMensagem = () => {
                 Mensagem enviada um dia antes do agendamento
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Label htmlFor="confirmation">Mensagem</Label>
-              <Textarea
-                id="confirmation"
-                placeholder="Ex: Olá {nome_cliente}! Lembramos que seu horário com {nome_profissional} está marcado para amanhã às {horario_agendamento}."
-                value={confirmationMessage}
-                onChange={(e) => setConfirmationMessage(e.target.value)}
-                className="mt-2 min-h-[120px]"
-              />
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="confirmation">Mensagem</Label>
+                <Textarea
+                  id="confirmation"
+                  placeholder="Ex: Olá {nome_cliente}! Lembramos que seu horário com {nome_profissional} está marcado para amanhã às {horario_agendamento}."
+                  value={confirmationMessage}
+                  onChange={(e) => setConfirmationMessage(e.target.value)}
+                  className="mt-2 min-h-[120px]"
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button 
+                  onClick={() => handleSaveTemplate("confirmation", confirmationMessage)}
+                  disabled={loading}
+                >
+                  {loading ? "Salvando..." : "Salvar"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -220,23 +236,27 @@ const ModelosMensagem = () => {
                 Mensagem enviada no dia do agendamento
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <Label htmlFor="reminder">Mensagem</Label>
-              <Textarea
-                id="reminder"
-                placeholder="Ex: Olá {nome_cliente}! Hoje é o dia do seu horário com {nome_profissional} às {horario_agendamento}. Valor: {valor}. Chave Pix: {chave_pix}"
-                value={reminderMessage}
-                onChange={(e) => setReminderMessage(e.target.value)}
-                className="mt-2 min-h-[120px]"
-              />
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="reminder">Mensagem</Label>
+                <Textarea
+                  id="reminder"
+                  placeholder="Ex: Olá {nome_cliente}! Hoje é o dia do seu horário com {nome_profissional} às {horario_agendamento}. Valor: {valor}. Chave Pix: {chave_pix}"
+                  value={reminderMessage}
+                  onChange={(e) => setReminderMessage(e.target.value)}
+                  className="mt-2 min-h-[120px]"
+                />
+              </div>
+              <div className="flex justify-end">
+                <Button 
+                  onClick={() => handleSaveTemplate("reminder", reminderMessage)}
+                  disabled={loading}
+                >
+                  {loading ? "Salvando..." : "Salvar"}
+                </Button>
+              </div>
             </CardContent>
           </Card>
-
-          <div className="flex justify-end">
-            <Button onClick={handleSave} size="lg" disabled={loading}>
-              {loading ? "Salvando..." : "Salvar Mensagens"}
-            </Button>
-          </div>
         </div>
       </main>
       
