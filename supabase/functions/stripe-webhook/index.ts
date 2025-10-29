@@ -27,7 +27,7 @@ serve(async (req) => {
       throw new Error("Missing required environment variables");
     }
 
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
+    const stripe = new Stripe(stripeKey, { apiVersion: "2024-11-20.acacia" });
     
     // Get the signature from headers
     const signature = req.headers.get("stripe-signature");
@@ -45,9 +45,10 @@ serve(async (req) => {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
       logStep("Signature verified", { eventType: event.type, eventId: event.id });
     } catch (err) {
-      logStep("Signature verification failed", { error: err.message });
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      logStep("Signature verification failed", { error: errorMessage });
       return new Response(
-        JSON.stringify({ error: `Webhook signature verification failed: ${err.message}` }),
+        JSON.stringify({ error: `Webhook signature verification failed: ${errorMessage}` }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
