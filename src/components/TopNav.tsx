@@ -133,6 +133,7 @@ const TopNav = () => {
   };
 
   const navItems = [
+    { path: "/", label: "Início", icon: Sparkles },
     { path: "/agenda", label: "Agenda", icon: Calendar },
     { path: "/financeiro", label: "Financeiro", icon: DollarSign },
   ];
