@@ -19,7 +19,7 @@ const ModelosMensagem = () => {
   const [scheduledMessage, setScheduledMessage] = useState("");
   const [confirmationMessage, setConfirmationMessage] = useState("");
   const [reminderMessage, setReminderMessage] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const variables = [
     { label: "Nome da cliente", value: "{nome_cliente}" },
@@ -233,8 +233,8 @@ const ModelosMensagem = () => {
           </Card>
 
           <div className="flex justify-end">
-            <Button onClick={handleSave} size="lg">
-              Salvar Mensagens
+            <Button onClick={handleSave} size="lg" disabled={loading}>
+              {loading ? "Salvando..." : "Salvar Mensagens"}
             </Button>
           </div>
         </div>
