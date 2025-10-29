@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +8,7 @@ import TopNav from "@/components/TopNav";
 import BottomNav from "@/components/BottomNav";
 import { Crown, Check, Zap, AlertCircle } from "lucide-react";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useAuth } from "@/contexts/AuthContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -27,34 +27,10 @@ interface Plan {
 }
 
 const Assinatura = () => {
-  const [user, setUser] = useState<any>(null);
+  const { user, subscription: authSubscription, refreshSubscription } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
   const { subscription, loading: subLoading, refresh } = useSubscription(user?.id);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/auth");
-        return;
-      }
-      setUser(session.user);
-    };
-
-    checkUser();
-
-    const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate("/auth");
-      } else {
-        setUser(session.user);
-      }
-    });
-
-    return () => authSubscription.unsubscribe();
-  }, [navigate]);
 
   useEffect(() => {
     fetchPlans();
@@ -140,14 +116,12 @@ const Assinatura = () => {
 
     const checkSub = async () => {
       try {
-        await supabase.functions.invoke('check-subscription');
+        await refreshSubscription();
         refresh();
       } catch (error) {
         console.error("Error checking subscription:", error);
       }
     };
-
-    checkSub();
 
     // Check for success/cancel params
     const params = new URLSearchParams(window.location.search);
@@ -159,7 +133,7 @@ const Assinatura = () => {
       toast.info("Pagamento cancelado");
       window.history.replaceState({}, '', '/assinatura');
     }
-  }, [user]);
+  }, [user, refreshSubscription, refresh]);
 
   const formatLimit = (limit: number | null) => {
     return limit === null ? "Ilimitado" : limit.toString();
@@ -183,8 +157,23 @@ const Assinatura = () => {
       <TopNav />
 
       <main className="container mx-auto px-4 py-8">
+        {/* Mensagem para usuários sem assinatura ativa */}
+        {authSubscription && !authSubscription.subscribed && (
+          <Card className="mb-8 border-destructive/50 bg-destructive/10">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <AlertCircle className="w-5 h-5" />
+                Assinatura Necessária
+              </CardTitle>
+              <CardDescription>
+                Você precisa de uma assinatura ativa para acessar o aplicativo. Escolha um plano abaixo para continuar.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        )}
+
         {/* Status da Assinatura Atual */}
-        {subscription && (
+        {subscription && authSubscription?.subscribed && (
           <Card className="mb-8 border-primary/20 shadow-lg">
             <CardHeader>
               <div className="flex items-center justify-between">

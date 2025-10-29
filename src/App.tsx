@@ -3,7 +3,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { SubscriptionRoute } from "./components/SubscriptionRoute";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import Clientes from "./pages/Clientes";
@@ -26,27 +28,29 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/agenda" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
-            <Route path="/servicos" element={<ProtectedRoute><Servicos /></ProtectedRoute>} />
-            <Route path="/financeiro" element={<ProtectedRoute><Financeiro /></ProtectedRoute>} />
-            <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
-            <Route path="/notificacoes" element={<ProtectedRoute><Notificacoes /></ProtectedRoute>} />
-            <Route path="/horario-expediente" element={<ProtectedRoute><HorarioExpediente /></ProtectedRoute>} />
-            <Route path="/horarios-agendamento" element={<ProtectedRoute><HorariosAgendamento /></ProtectedRoute>} />
-            <Route path="/modelos-mensagem" element={<ProtectedRoute><ModelosMensagem /></ProtectedRoute>} />
-            <Route path="/assinatura" element={<ProtectedRoute><Assinatura /></ProtectedRoute>} />
-            <Route path="/agendar/:slug" element={<AgendamentoPublico />} />
-            <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/agenda" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/clientes" element={<ProtectedRoute><Clientes /></ProtectedRoute>} />
+              <Route path="/servicos" element={<ProtectedRoute><Servicos /></ProtectedRoute>} />
+              <Route path="/financeiro" element={<ProtectedRoute><Financeiro /></ProtectedRoute>} />
+              <Route path="/configuracoes" element={<ProtectedRoute><Configuracoes /></ProtectedRoute>} />
+              <Route path="/notificacoes" element={<ProtectedRoute><Notificacoes /></ProtectedRoute>} />
+              <Route path="/horario-expediente" element={<ProtectedRoute><HorarioExpediente /></ProtectedRoute>} />
+              <Route path="/horarios-agendamento" element={<ProtectedRoute><HorariosAgendamento /></ProtectedRoute>} />
+              <Route path="/modelos-mensagem" element={<ProtectedRoute><ModelosMensagem /></ProtectedRoute>} />
+              <Route path="/assinatura" element={<SubscriptionRoute><Assinatura /></SubscriptionRoute>} />
+              <Route path="/agendar/:slug" element={<AgendamentoPublico />} />
+              <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
