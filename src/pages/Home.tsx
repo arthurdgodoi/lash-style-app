@@ -10,6 +10,7 @@ import { ptBR } from "date-fns/locale";
 
 const Home = () => {
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
   const [todayAppointments, setTodayAppointments] = useState<any[]>([]);
   const [clients, setClients] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -53,6 +54,15 @@ const Home = () => {
     try {
       const today = new Date();
       const dateStr = format(today, "yyyy-MM-dd");
+
+      // Fetch user profile
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      
+      setProfile(profileData);
 
       // Fetch today's appointments
       const { data: appointmentsData } = await supabase
@@ -114,15 +124,12 @@ const Home = () => {
       <TopNav />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-primary/10 rounded-full mb-4">
-            <Calendar className="w-10 h-10 text-primary" />
-          </div>
+        <div className="mb-8">
           <h2 className="text-3xl font-bold text-foreground mb-2">
-            Olá! 👋
+            Olá, {profile?.full_name || "usuário"}!
           </h2>
-          <p className="text-muted-foreground">
-            {format(new Date(), "EEEE, d 'de' MMMM", { locale: ptBR })}
+          <p className="text-lg text-muted-foreground border-b-2 border-primary pb-2 inline-block">
+            Bem-vindo ao seu painel de agendamentos
           </p>
         </div>
 
