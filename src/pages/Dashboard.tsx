@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar as CalendarIcon, Users, Clock, Plus, Link2, Copy } from "lucide-react";
+import { Calendar as CalendarIcon, Users, Clock, Plus, Link2, Copy, ChevronLeft, ChevronRight } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import TopNav from "@/components/TopNav";
@@ -13,7 +13,7 @@ import { BlockSlotDialog } from "@/components/BlockSlotDialog";
 import { DayScheduleView } from "@/components/DayScheduleView";
 import { WeekScheduleView } from "@/components/WeekScheduleView";
 import { MonthScheduleView } from "@/components/MonthScheduleView";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -259,6 +259,14 @@ const Dashboard = () => {
     setAppointmentDialogOpen(true);
   };
 
+  const handlePreviousDay = () => {
+    setSelectedDate(subDays(selectedDate, 1));
+  };
+
+  const handleNextDay = () => {
+    setSelectedDate(addDays(selectedDate, 1));
+  };
+
   if (!user) {
     return null;
   }
@@ -269,8 +277,8 @@ const Dashboard = () => {
 
       <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
         <Card className="p-4 sm:p-6 lg:p-8 border-border/50 shadow-lg mb-6">
-          <div className="mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-            <div className="flex-1">
+          <div className="mb-6 flex flex-col items-center gap-4">
+            <div className="text-center">
               <h3 className="text-xl font-semibold text-foreground mb-1">
                 Agendamentos
               </h3>
@@ -279,26 +287,37 @@ const Dashboard = () => {
               </p>
             </div>
             
-            <div className="flex items-center gap-2 flex-wrap">
-              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "day" | "week" | "month")}>
-                <TabsList>
-                  <TabsTrigger value="day">Dia</TabsTrigger>
-                  <TabsTrigger value="week">Semana</TabsTrigger>
-                  <TabsTrigger value="month">Mês</TabsTrigger>
-                </TabsList>
-              </Tabs>
+            {/* Tabs centralizados */}
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "day" | "week" | "month")}>
+              <TabsList>
+                <TabsTrigger value="day">Dia</TabsTrigger>
+                <TabsTrigger value="week">Semana</TabsTrigger>
+                <TabsTrigger value="month">Mês</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
+            {/* Navegação de data centralizada com botões laterais */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handlePreviousDay}
+                className="h-9 w-9"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
               
               <Popover>
                 <PopoverTrigger asChild>
                   <Button 
                     variant="outline" 
-                    className="gap-2 hover:bg-accent hover:border-primary transition-all duration-200 cursor-pointer"
+                    className="gap-2 hover:bg-accent hover:border-primary transition-all duration-200 cursor-pointer min-w-[200px]"
                   >
                     <CalendarIcon className="w-4 h-4" />
-                    {format(selectedDate, "dd 'de' MMMM", { locale: ptBR })}
+                    {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
+                <PopoverContent className="w-auto p-0" align="center">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
@@ -309,6 +328,15 @@ const Dashboard = () => {
                   />
                 </PopoverContent>
               </Popover>
+              
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleNextDay}
+                className="h-9 w-9"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
             </div>
           </div>
 
