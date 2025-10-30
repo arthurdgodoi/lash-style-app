@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Calendar, Clock, User, DollarSign, TrendingUp, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { Calendar, Clock, User, DollarSign, TrendingUp, ChevronLeft, ChevronRight, Plus, MessageCircle, Bell } from "lucide-react";
 import TopNav from "@/components/TopNav";
 import BottomNav from "@/components/BottomNav";
 import { format, startOfDay, endOfDay, addDays, subDays } from "date-fns";
@@ -355,64 +355,76 @@ const Home = () => {
 
         {/* Next Appointment */}
         {nextAppointment && (
-          <Card className="p-6 mb-8 border-primary">
-            <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center">
-              <Clock className="w-5 h-5 mr-2 text-primary" />
-              Próximo Atendimento
-            </h3>
-            <div className="space-y-2 mb-4">
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Horário:</span>
-                <span className="font-semibold">
-                  {nextAppointment.appointment_time.substring(0, 5)}
-                </span>
+          <div className="flex justify-center mb-8">
+            <Card className="p-6 border-primary w-full max-w-md">
+              <h3 className="text-base md:text-lg font-semibold mb-4 flex items-center justify-center">
+                <Clock className="w-5 h-5 mr-2 text-primary" />
+                Próximo Atendimento
+              </h3>
+              <div className="space-y-2 mb-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Horário:</span>
+                  <span className="font-semibold">
+                    {nextAppointment.appointment_time.substring(0, 5)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Cliente:</span>
+                  <span className="font-semibold">
+                    {getClientName(nextAppointment.client_id)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Serviço:</span>
+                  <span className="font-semibold">
+                    {getServiceName(nextAppointment.service_id)}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Cliente:</span>
-                <span className="font-semibold">
-                  {getClientName(nextAppointment.client_id)}
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-muted-foreground">Serviço:</span>
-                <span className="font-semibold">
-                  {getServiceName(nextAppointment.service_id)}
-                </span>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
-                📱 Enviar pelo WhatsApp
-              </p>
-              <div className="flex gap-2">
+              
+              <div className="flex gap-2 justify-center">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className={cn(
+                    "h-10 w-10",
+                    isButtonClicked(nextAppointment.id, "confirmation") && "opacity-50"
+                  )}
+                  onClick={() => handleWhatsAppClick("confirmation", nextAppointment.id)}
+                  disabled={!generateWhatsAppLink("confirmation")}
+                  title="Confirmar horário"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   className={cn(
-                    "flex-1",
+                    "gap-2",
                     isButtonClicked(nextAppointment.id, "confirmation") && "opacity-50"
                   )}
                   onClick={() => handleWhatsAppClick("confirmation", nextAppointment.id)}
                   disabled={!generateWhatsAppLink("confirmation")}
                 >
-                  📱 Confirmar horário
+                  <MessageCircle className="h-4 w-4" />
+                  Confirmar horário
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   className={cn(
-                    "flex-1",
+                    "gap-2",
                     isButtonClicked(nextAppointment.id, "reminder") && "opacity-50"
                   )}
                   onClick={() => handleWhatsAppClick("reminder", nextAppointment.id)}
                   disabled={!generateWhatsAppLink("reminder")}
                 >
-                  🔔 Enviar lembrete
+                  <Bell className="h-4 w-4" />
+                  Enviar lembrete
                 </Button>
               </div>
-            </div>
-          </Card>
+            </Card>
+          </div>
         )}
 
         {/* Schedule */}
