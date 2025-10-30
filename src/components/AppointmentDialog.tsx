@@ -317,7 +317,8 @@ export const AppointmentDialog = ({
         throw new Error("Usuário não autenticado");
       }
 
-      // Verificar limite apenas para novos agendamentos
+      // Verificar limite apenas para novos agendamentos (DESATIVADO - sistema de assinatura desabilitado)
+      /* 
       if (!appointmentId) {
         const { data: canCreate, error: limitError } = await supabase.rpc('check_subscription_limit', {
           _user_id: user.id,
@@ -338,6 +339,7 @@ export const AppointmentDialog = ({
           return;
         }
       }
+      */
 
       const appointmentData = {
         user_id: user.id,
@@ -442,7 +444,8 @@ export const AppointmentDialog = ({
         throw new Error("Usuário não autenticado");
       }
 
-      // Verificar limite
+      // Verificar limite (DESATIVADO - sistema de assinatura desabilitado)
+      /* 
       const { data: canCreate, error: limitError } = await supabase.rpc('check_subscription_limit', {
         _user_id: user.id,
         _limit_type: 'appointments'
@@ -461,6 +464,7 @@ export const AppointmentDialog = ({
         setLoading(false);
         return;
       }
+      */
 
       const appointmentData = {
         user_id: user.id,

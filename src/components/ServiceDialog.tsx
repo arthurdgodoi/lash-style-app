@@ -111,7 +111,8 @@ const ServiceDialog = ({ open, onOpenChange, onSuccess, service }: ServiceDialog
         return;
       }
 
-      // Verificar limite apenas para novos serviços
+      // Verificar limite apenas para novos serviços (DESATIVADO - sistema de assinatura desabilitado)
+      /* 
       if (!service?.id) {
         const { data: canCreate, error: limitError } = await supabase.rpc('check_subscription_limit', {
           _user_id: user.id,
@@ -132,6 +133,7 @@ const ServiceDialog = ({ open, onOpenChange, onSuccess, service }: ServiceDialog
           return;
         }
       }
+      */
 
       const serviceData = {
         name: data.name,

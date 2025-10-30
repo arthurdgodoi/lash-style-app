@@ -88,7 +88,8 @@ const ClientDialog = ({ open, onOpenChange, onSuccess, client }: ClientDialogPro
         return;
       }
 
-      // Verificar limite apenas para novos clientes
+      // Verificar limite apenas para novos clientes (DESATIVADO - sistema de assinatura desabilitado)
+      /* 
       if (!client?.id) {
         const { data: canCreate, error: limitError } = await supabase.rpc('check_subscription_limit', {
           _user_id: user.id,
@@ -109,6 +110,7 @@ const ClientDialog = ({ open, onOpenChange, onSuccess, client }: ClientDialogPro
           return;
         }
       }
+      */
 
       const clientData = {
         name: data.name,
