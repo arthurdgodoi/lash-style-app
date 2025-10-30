@@ -112,6 +112,14 @@ const Dashboard = () => {
           .lte("appointment_date", endDateStr)
           .order("appointment_time", { ascending: true });
 
+        console.log('Dashboard - Fetching appointments:', {
+          viewMode,
+          startDate: startDateStr,
+          endDate: endDateStr,
+          found: appointmentsData?.length || 0,
+          appointments: appointmentsData
+        });
+
         if (appointmentsError) throw appointmentsError;
 
         // Fetch clients and services

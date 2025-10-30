@@ -60,6 +60,12 @@ export const DayScheduleView = ({
   const [blockedSlots, setBlockedSlots] = useState<BlockedSlot[]>([]);
   const [isFullDayBlocked, setIsFullDayBlocked] = useState(false);
 
+  // Debug log
+  useEffect(() => {
+    console.log('DayScheduleView - Appointments received:', appointments);
+    console.log('DayScheduleView - Selected date:', format(selectedDate, "yyyy-MM-dd"));
+  }, [appointments, selectedDate]);
+
   useEffect(() => {
     // Generate time slots from 6am to 11pm (like week view)
     const slots: string[] = [];
@@ -107,10 +113,12 @@ export const DayScheduleView = ({
   };
 
   const getAppointmentAtTime = (time: string) => {
-    return appointments.find((apt) => {
+    const found = appointments.find((apt) => {
       const aptTime = apt.appointment_time.substring(0, 5);
+      console.log('Comparing:', { aptTime, time, matches: aptTime === time, appointment: apt });
       return aptTime === time;
     });
+    return found;
   };
 
   const getBlockedSlotAtTime = (time: string) => {

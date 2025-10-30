@@ -30,6 +30,10 @@ export const MonthScheduleView = ({
   getClientName,
   getServiceName,
 }: MonthScheduleViewProps) => {
+  // Debug log
+  console.log('MonthScheduleView - Appointments received:', appointments);
+  console.log('MonthScheduleView - Selected month:', format(selectedDate, "yyyy-MM"));
+  
   const monthStart = startOfMonth(selectedDate);
   const monthEnd = endOfMonth(selectedDate);
   const startDate = startOfWeek(monthStart, { locale: ptBR });
@@ -51,7 +55,11 @@ export const MonthScheduleView = ({
 
   const getAppointmentsForDate = (date: Date) => {
     const dateStr = format(date, "yyyy-MM-dd");
-    return appointments.filter((apt) => apt.appointment_date === dateStr);
+    const filtered = appointments.filter((apt) => apt.appointment_date === dateStr);
+    if (filtered.length > 0) {
+      console.log('MonthScheduleView - Date:', dateStr, 'Appointments:', filtered.length);
+    }
+    return filtered;
   };
 
   const getStatusColor = (status: string) => {

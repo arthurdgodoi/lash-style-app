@@ -32,6 +32,9 @@ export const WeekScheduleView = ({
   getClientName,
   getServiceName,
 }: WeekScheduleViewProps) => {
+  // Debug log
+  console.log('WeekScheduleView - Appointments received:', appointments);
+  
   const weekStart = startOfWeek(selectedDate, { locale: ptBR });
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
   
@@ -43,11 +46,15 @@ export const WeekScheduleView = ({
 
   const getAppointmentsForDateTime = (date: Date, time: string) => {
     const dateStr = format(date, "yyyy-MM-dd");
-    return appointments.filter(
-      (apt) =>
-        apt.appointment_date === dateStr &&
-        apt.appointment_time.startsWith(time.substring(0, 2))
+    const appointments_filtered = appointments.filter(
+      (apt) => {
+        const aptTime = apt.appointment_time.substring(0, 5); // "09:00:00" -> "09:00"
+        const matches = apt.appointment_date === dateStr && aptTime === time;
+        return matches;
+      }
     );
+    console.log('WeekScheduleView - Date:', dateStr, 'Time:', time, 'Found:', appointments_filtered.length);
+    return appointments_filtered;
   };
 
   const getStatusColor = (status: string) => {
