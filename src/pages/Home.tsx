@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Calendar, Clock, User, DollarSign, TrendingUp, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, Clock, User, DollarSign, TrendingUp, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import TopNav from "@/components/TopNav";
 import BottomNav from "@/components/BottomNav";
 import { format, startOfDay, endOfDay, addDays, subDays } from "date-fns";
@@ -213,6 +213,11 @@ const Home = () => {
 
   const handleAppointmentClick = (appointmentId: string) => {
     setSelectedAppointmentId(appointmentId);
+    setIsAppointmentDialogOpen(true);
+  };
+
+  const handleNewAppointment = () => {
+    setSelectedAppointmentId(null);
     setIsAppointmentDialogOpen(true);
   };
 
@@ -465,11 +470,20 @@ const Home = () => {
 
       <BottomNav />
 
-      {isAppointmentDialogOpen && selectedAppointmentId && (
+      {/* Floating Action Button */}
+      <Button
+        onClick={handleNewAppointment}
+        size="lg"
+        className="fixed bottom-24 md:bottom-8 right-4 md:right-8 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 z-50"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
+
+      {isAppointmentDialogOpen && (
         <AppointmentDialog
           open={isAppointmentDialogOpen}
           onOpenChange={setIsAppointmentDialogOpen}
-          appointmentId={selectedAppointmentId}
+          appointmentId={selectedAppointmentId || undefined}
           onSuccess={handleAppointmentClose}
         />
       )}
