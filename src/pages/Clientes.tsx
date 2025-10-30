@@ -33,7 +33,6 @@ const Clientes = () => {
       }
 
       setUser(session.user);
-      fetchClients();
     };
 
     checkUser();
@@ -51,6 +50,13 @@ const Clientes = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Buscar clientes quando o user estiver disponível
+  useEffect(() => {
+    if (user) {
+      fetchClients();
+    }
+  }, [user]);
+
   const fetchClients = async () => {
     setLoading(true);
     try {
@@ -63,8 +69,11 @@ const Clientes = () => {
         .order("name", { ascending: true });
 
       if (error) throw error;
+      
+      console.log('Clientes carregados:', data);
       setClients(data || []);
     } catch (error: any) {
+      console.error('Erro ao carregar clientes:', error);
       toast({
         title: "Erro",
         description: error.message,
