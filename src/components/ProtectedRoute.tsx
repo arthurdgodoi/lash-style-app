@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 
+// 🔧 FEATURE FLAG: Deve coincidir com o valor em AuthContext.tsx
+const ENABLE_SUBSCRIPTION_CHECK = false;
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
@@ -28,7 +31,7 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
 
       // Wait for subscription data to be available
       if (subscription !== null) {
-        if (!subscription.subscribed && !isDev) {
+        if (!subscription.subscribed && !isDev && ENABLE_SUBSCRIPTION_CHECK) {
           navigate("/assinatura");
         }
         setChecking(false);

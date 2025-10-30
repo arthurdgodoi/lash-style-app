@@ -2,6 +2,9 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+// 🔧 FEATURE FLAG: Desative temporariamente a verificação de assinatura
+const ENABLE_SUBSCRIPTION_CHECK = false; // Mude para true quando quiser reativar
+
 interface SubscriptionData {
   subscribed: boolean;
   product_id: string | null;
@@ -25,6 +28,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const checkSubscription = async (currentSession: Session | null) => {
+    if (!ENABLE_SUBSCRIPTION_CHECK) {
+      // Quando desativado, sempre retorna como se estivesse com assinatura ativa
+      setSubscription({ subscribed: true, product_id: null, subscription_end: null });
+      return;
+    }
+
     if (!currentSession) {
       setSubscription(null);
       return;
@@ -88,18 +97,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
-    // Refresh subscription every 60 seconds
-    const interval = setInterval(() => {
-      supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-        if (currentSession) {
-          checkSubscription(currentSession);
-        }
-      });
-    }, 60000);
+    // Refresh subscription every 60 seconds (DESATIVADO quando ENABLE_SUBSCRIPTION_CHECK = false)
+    // const interval = setInterval(() => {
+    //   supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+    //     if (currentSession) {
+    //       checkSubscription(currentSession);
+    //     }
+    //   });
+    // }, 60000);
 
     return () => {
       authSubscription.unsubscribe();
-      clearInterval(interval);
+      // clearInterval(interval);
     };
   }, []);
 

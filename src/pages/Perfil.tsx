@@ -247,29 +247,6 @@ const Perfil = () => {
             </CardContent>
           </Card>
 
-          <Card 
-            className="cursor-pointer hover:shadow-xl transition-all duration-300 hover:scale-105 group"
-            onClick={() => navigate("/assinatura")}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-xl group-hover:bg-primary/20 transition-colors">
-                    <User className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground">
-                      Assinatura
-                    </h3>
-                    <p className="text-sm text-muted-foreground font-normal">
-                      Gerencie seu plano
-                    </p>
-                  </div>
-                </div>
-              </CardTitle>
-            </CardHeader>
-          </Card>
-
           <Card>
             <CardHeader>
               <CardTitle>Segurança e Dados</CardTitle>

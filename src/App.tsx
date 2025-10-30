@@ -20,7 +20,6 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Perfil from "./pages/Perfil";
 import ModelosMensagem from "./pages/ModelosMensagem";
-import Assinatura from "./pages/Assinatura";
 
 const queryClient = new QueryClient();
 
@@ -43,7 +42,6 @@ const App = () => {
               <Route path="/horario-expediente" element={<ProtectedRoute><HorarioExpediente /></ProtectedRoute>} />
               <Route path="/horarios-agendamento" element={<ProtectedRoute><HorariosAgendamento /></ProtectedRoute>} />
               <Route path="/modelos-mensagem" element={<ProtectedRoute><ModelosMensagem /></ProtectedRoute>} />
-              <Route path="/assinatura" element={<SubscriptionRoute><Assinatura /></SubscriptionRoute>} />
               <Route path="/agendar/:slug" element={<AgendamentoPublico />} />
               <Route path="/perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
               <Route path="/auth" element={<Auth />} />
