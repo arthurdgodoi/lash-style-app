@@ -382,25 +382,12 @@ const Home = () => {
                 </div>
               </div>
               
-              <div className="flex gap-2 justify-center">
+              <div className="flex flex-col gap-3 pt-4 border-t border-border/50">
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="default"
                   className={cn(
-                    "h-10 w-10",
-                    isButtonClicked(nextAppointment.id, "confirmation") && "opacity-50"
-                  )}
-                  onClick={() => handleWhatsAppClick("confirmation", nextAppointment.id)}
-                  disabled={!generateWhatsAppLink("confirmation")}
-                  title="Confirmar horário"
-                >
-                  <MessageCircle className="h-5 w-5" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    "gap-2",
+                    "w-full gap-2 justify-center",
                     isButtonClicked(nextAppointment.id, "confirmation") && "opacity-50"
                   )}
                   onClick={() => handleWhatsAppClick("confirmation", nextAppointment.id)}
@@ -411,9 +398,9 @@ const Home = () => {
                 </Button>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="default"
                   className={cn(
-                    "gap-2",
+                    "w-full gap-2 justify-center",
                     isButtonClicked(nextAppointment.id, "reminder") && "opacity-50"
                   )}
                   onClick={() => handleWhatsAppClick("reminder", nextAppointment.id)}
