@@ -30,7 +30,6 @@ const Servicos = () => {
       }
 
       setUser(session.user);
-      fetchServices();
     };
 
     checkUser();
@@ -48,6 +47,13 @@ const Servicos = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
+  // Buscar serviços quando o user estiver disponível
+  useEffect(() => {
+    if (user) {
+      fetchServices();
+    }
+  }, [user]);
+
   const fetchServices = async () => {
     setLoading(true);
     try {
@@ -60,8 +66,11 @@ const Servicos = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      
+      console.log('Serviços carregados:', data);
       setServices(data || []);
     } catch (error: any) {
+      console.error('Erro ao carregar serviços:', error);
       toast({
         title: "Erro",
         description: error.message,
