@@ -11,6 +11,49 @@ const logStep = (step: string, details?: any) => {
   console.log(`[EXPORT-USER-DATA] ${step}${detailsStr}`);
 };
 
+// Função para converter objeto em XML
+const toXML = (obj: any, rootName: string = 'root'): string => {
+  const escape = (str: string) => {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
+  };
+
+  const convert = (data: any, name: string, indent: string = ''): string => {
+    if (data === null || data === undefined) {
+      return `${indent}<${name} />\n`;
+    }
+
+    if (Array.isArray(data)) {
+      if (data.length === 0) {
+        return `${indent}<${name} />\n`;
+      }
+      return data.map(item => convert(item, name.replace(/s$/, ''), indent)).join('');
+    }
+
+    if (typeof data === 'object') {
+      const entries = Object.entries(data);
+      if (entries.length === 0) {
+        return `${indent}<${name} />\n`;
+      }
+      
+      let xml = `${indent}<${name}>\n`;
+      for (const [key, value] of entries) {
+        xml += convert(value, key, indent + '  ');
+      }
+      xml += `${indent}</${name}>\n`;
+      return xml;
+    }
+
+    return `${indent}<${name}>${escape(String(data))}</${name}>\n`;
+  };
+
+  return `<?xml version="1.0" encoding="UTF-8"?>\n${convert(obj, rootName)}`;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -114,11 +157,13 @@ serve(async (req) => {
       expenses: expenses?.length || 0
     });
 
-    return new Response(JSON.stringify(exportData, null, 2), {
+    const xmlData = toXML(exportData, 'user_data');
+
+    return new Response(xmlData, {
       headers: { 
         ...corsHeaders, 
-        "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="meus-dados-${new Date().toISOString().split('T')[0]}.json"`
+        "Content-Type": "application/xml",
+        "Content-Disposition": `attachment; filename="meus-dados-${new Date().toISOString().split('T')[0]}.xml"`
       },
       status: 200,
     });

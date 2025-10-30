@@ -256,7 +256,7 @@ const Perfil = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Exporte todos os seus dados (clientes, serviços, agendamentos, despesas) em formato JSON para backup.
+                Exporte todos os seus dados (clientes, serviços, agendamentos, despesas) em formato XML para backup.
               </p>
               <Button
                 variant="outline"
@@ -267,16 +267,28 @@ const Perfil = () => {
                       description: "Aguarde enquanto preparamos seu arquivo",
                     });
                     
-                    const { data, error } = await supabase.functions.invoke('export-user-data');
-                    
-                    if (error) throw error;
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (!session) throw new Error("Não autenticado");
+
+                    const response = await fetch(
+                      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/export-user-data`,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${session.access_token}`,
+                        },
+                      }
+                    );
+
+                    if (!response.ok) throw new Error("Erro ao exportar dados");
+
+                    const xmlData = await response.text();
                     
                     // Create download link
-                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const blob = new Blob([xmlData], { type: 'application/xml' });
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `meus-dados-${new Date().toISOString().split('T')[0]}.json`;
+                    a.download = `meus-dados-${new Date().toISOString().split('T')[0]}.xml`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
@@ -284,7 +296,7 @@ const Perfil = () => {
                     
                     toast({
                       title: "Dados exportados",
-                      description: "O arquivo foi baixado com sucesso",
+                      description: "O arquivo XML foi baixado com sucesso",
                     });
                   } catch (error: any) {
                     toast({
