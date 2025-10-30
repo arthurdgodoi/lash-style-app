@@ -57,6 +57,8 @@ export type Database = {
           id: string
           include_salon_percentage: boolean
           notes: string | null
+          payment_method: string | null
+          payment_status: string | null
           price: number
           salon_percentage: number | null
           service_id: string
@@ -73,6 +75,8 @@ export type Database = {
           id?: string
           include_salon_percentage?: boolean
           notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
           price: number
           salon_percentage?: number | null
           service_id: string
@@ -89,6 +93,8 @@ export type Database = {
           id?: string
           include_salon_percentage?: boolean
           notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
           price?: number
           salon_percentage?: number | null
           service_id?: string

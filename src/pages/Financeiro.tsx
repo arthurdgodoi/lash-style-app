@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalendarIcon, Plus, TrendingUp, TrendingDown, DollarSign, BarChart3, Users, ShoppingBag, Trophy } from "lucide-react";
+import { CalendarIcon, Plus, TrendingUp, TrendingDown, DollarSign, BarChart3, Users, ShoppingBag, Trophy, Clock, CheckCircle2 } from "lucide-react";
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,7 @@ const Financeiro = () => {
   const [topServices, setTopServices] = useState<{ name: string; count: number; revenue: number }[]>([]);
   const [topClients, setTopClients] = useState<{ name: string; total: number; count: number }[]>([]);
   const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
+  const [pendingPayments, setPendingPayments] = useState<any[]>([]);
 
   const getDateRange = () => {
     const now = new Date();
@@ -205,11 +206,39 @@ const Financeiro = () => {
 
       setTopClients(clientsArray);
 
+      // Buscar pagamentos pendentes
+      const { data: pendingData } = await supabase
+        .from("appointments")
+        .select("*, clients(name, phone)")
+        .eq("user_id", user.id)
+        .eq("payment_status", "pending")
+        .eq("status", "completed")
+        .order("appointment_date", { ascending: false });
+
+      setPendingPayments(pendingData || []);
+
     } catch (error) {
       console.error("Erro ao buscar dados financeiros:", error);
       toast.error("Erro ao carregar dados financeiros");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleMarkAsPaid = async (appointmentId: string) => {
+    try {
+      const { error } = await supabase
+        .from("appointments")
+        .update({ payment_status: "paid" })
+        .eq("id", appointmentId);
+
+      if (error) throw error;
+
+      toast.success("Pagamento confirmado!");
+      fetchFinancialData();
+    } catch (error) {
+      console.error("Erro ao marcar como pago:", error);
+      toast.error("Erro ao confirmar pagamento");
     }
   };
 
@@ -267,8 +296,16 @@ const Financeiro = () => {
         </div>
 
         <Tabs defaultValue="financial" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="financial">Financeiro</TabsTrigger>
+            <TabsTrigger value="pending">
+              Pendentes
+              {pendingPayments.length > 0 && (
+                <span className="ml-2 bg-destructive text-destructive-foreground rounded-full px-2 py-0.5 text-xs">
+                  {pendingPayments.length}
+                </span>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="reports">Relatórios</TabsTrigger>
           </TabsList>
 
@@ -491,6 +528,60 @@ const Financeiro = () => {
             )}
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="pending">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5" />
+                  Pagamentos Pendentes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {pendingPayments.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-4" />
+                    <p className="text-muted-foreground">
+                      Nenhum pagamento pendente! 🎉
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {pendingPayments.map((payment) => (
+                      <div
+                        key={payment.id}
+                        className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+                      >
+                        <div className="flex-1">
+                          <p className="font-medium">{(payment.clients as any)?.name || "Cliente"}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {format(new Date(payment.appointment_date), "dd/MM/yyyy")} às{" "}
+                            {payment.appointment_time.substring(0, 5)}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className="font-bold text-lg text-destructive">
+                              R$ {Number(payment.price || 0).toFixed(2)}
+                            </p>
+                            <p className="text-xs text-muted-foreground">Pendente</p>
+                          </div>
+                          <Button
+                            size="sm"
+                            onClick={() => handleMarkAsPaid(payment.id)}
+                            className="gap-2"
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                            Pagou
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="reports">

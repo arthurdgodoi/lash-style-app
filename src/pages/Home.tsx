@@ -12,6 +12,7 @@ import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { AppointmentDialog } from "@/components/AppointmentDialog";
+import CompletionDialog from "@/components/CompletionDialog";
 
 const Home = () => {
   const [user, setUser] = useState<any>(null);
@@ -27,6 +28,8 @@ const Home = () => {
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
   const [isAppointmentDialogOpen, setIsAppointmentDialogOpen] = useState(false);
   const [clickedButtons, setClickedButtons] = useState<Record<string, boolean>>({});
+  const [completionDialogOpen, setCompletionDialogOpen] = useState(false);
+  const [completionAppointment, setCompletionAppointment] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -229,6 +232,22 @@ const Home = () => {
     if (user) {
       fetchTodayData(user.id, selectedDate);
     }
+  };
+
+  const handleCompleteClick = (appointment: any) => {
+    setCompletionAppointment(appointment);
+    setCompletionDialogOpen(true);
+  };
+
+  const handleRescheduleClick = (appointment: any) => {
+    setSelectedAppointmentId(appointment.id);
+    setIsAppointmentDialogOpen(true);
+  };
+
+  const isAppointmentPast = (appointment: any) => {
+    const now = new Date();
+    const aptTime = new Date(`${appointment.appointment_date}T${appointment.appointment_time}`);
+    return aptTime < now;
   };
 
   return (
@@ -469,41 +488,70 @@ const Home = () => {
                     </div>
                   </div>
                   
-                  {/* Botões de ação WhatsApp */}
-                  {(appointment.status === "scheduled" || appointment.status === "confirmed") && (
+                  {/* Botões de ação */}
+                  {appointment.status !== "completed" && appointment.status !== "cancelled" && (
                     <div className="flex gap-2 pt-3 border-t border-border/50">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn(
-                          "flex-1 gap-2",
-                          isButtonClicked(appointment.id, "confirmation") && "opacity-50"
-                        )}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleWhatsAppClick("confirmation", appointment.id);
-                        }}
-                        disabled={!generateWhatsAppLink("confirmation", appointment)}
-                      >
-                        <MessageCircle className="h-4 w-4" />
-                        Confirmar
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={cn(
-                          "flex-1 gap-2",
-                          isButtonClicked(appointment.id, "reminder") && "opacity-50"
-                        )}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleWhatsAppClick("reminder", appointment.id);
-                        }}
-                        disabled={!generateWhatsAppLink("reminder", appointment)}
-                      >
-                        <Bell className="h-4 w-4" />
-                        Lembrete
-                      </Button>
+                      {!isAppointmentPast(appointment) ? (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={cn(
+                              "flex-1 gap-2",
+                              isButtonClicked(appointment.id, "confirmation") && "opacity-50"
+                            )}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleWhatsAppClick("confirmation", appointment.id);
+                            }}
+                            disabled={!generateWhatsAppLink("confirmation", appointment)}
+                          >
+                            <MessageCircle className="h-4 w-4" />
+                            Confirmar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={cn(
+                              "flex-1 gap-2",
+                              isButtonClicked(appointment.id, "reminder") && "opacity-50"
+                            )}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleWhatsAppClick("reminder", appointment.id);
+                            }}
+                            disabled={!generateWhatsAppLink("reminder", appointment)}
+                          >
+                            <Bell className="h-4 w-4" />
+                            Lembrete
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCompleteClick(appointment);
+                            }}
+                          >
+                            Realizado
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRescheduleClick(appointment);
+                            }}
+                          >
+                            Remarcar
+                          </Button>
+                        </>
+                      )}
                     </div>
                   )}
                 </Card>
@@ -529,6 +577,16 @@ const Home = () => {
           open={isAppointmentDialogOpen}
           onOpenChange={setIsAppointmentDialogOpen}
           appointmentId={selectedAppointmentId || undefined}
+          onSuccess={handleAppointmentClose}
+        />
+      )}
+
+      {completionDialogOpen && completionAppointment && (
+        <CompletionDialog
+          open={completionDialogOpen}
+          onOpenChange={setCompletionDialogOpen}
+          appointmentId={completionAppointment.id}
+          currentPrice={Number(completionAppointment.price || 0)}
           onSuccess={handleAppointmentClose}
         />
       )}
