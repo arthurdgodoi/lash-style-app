@@ -148,10 +148,11 @@ const Home = () => {
     return service?.name || "Serviço não encontrado";
   };
 
-  const generateWhatsAppLink = (templateType: string) => {
-    if (!nextAppointment) return null;
+  const generateWhatsAppLink = (templateType: string, appointment?: any) => {
+    const apt = appointment || nextAppointment;
+    if (!apt) return null;
     
-    const client = clients.find((c) => c.id === nextAppointment.client_id);
+    const client = clients.find((c) => c.id === apt.client_id);
     const phone = client?.phone?.replace(/\D/g, "");
     
     if (!phone) return null;
@@ -164,8 +165,8 @@ const Home = () => {
     const message = template
       .replace(/{nome_cliente}/g, client?.name || "")
       .replace(/{nome_profissional}/g, profile?.professional_name || profile?.full_name || "")
-      .replace(/{horario_agendamento}/g, `${format(new Date(nextAppointment.appointment_date), "dd/MM/yyyy")} às ${nextAppointment.appointment_time.substring(0, 5)}`)
-      .replace(/{valor}/g, `R$ ${Number(nextAppointment.price || 0).toFixed(2)}`)
+      .replace(/{horario_agendamento}/g, `${format(new Date(apt.appointment_date), "dd/MM/yyyy")} às ${apt.appointment_time.substring(0, 5)}`)
+      .replace(/{valor}/g, `R$ ${Number(apt.price || 0).toFixed(2)}`)
       .replace(/{chave_pix}/g, profile?.pix_key || "")
       .replace(/{localizacao}/g, profile?.location || "");
     
@@ -173,7 +174,8 @@ const Home = () => {
   };
 
   const handleWhatsAppClick = (templateType: string, appointmentId: string) => {
-    const link = generateWhatsAppLink(templateType);
+    const appointment = todayAppointments.find(apt => apt.id === appointmentId);
+    const link = generateWhatsAppLink(templateType, appointment);
     if (link) {
       window.open(link, "_blank");
       
@@ -391,7 +393,7 @@ const Home = () => {
                     isButtonClicked(nextAppointment.id, "confirmation") && "opacity-50"
                   )}
                   onClick={() => handleWhatsAppClick("confirmation", nextAppointment.id)}
-                  disabled={!generateWhatsAppLink("confirmation")}
+                  disabled={!generateWhatsAppLink("confirmation", nextAppointment)}
                 >
                   <MessageCircle className="h-4 w-4" />
                   Confirmar horário
@@ -404,7 +406,7 @@ const Home = () => {
                     isButtonClicked(nextAppointment.id, "reminder") && "opacity-50"
                   )}
                   onClick={() => handleWhatsAppClick("reminder", nextAppointment.id)}
-                  disabled={!generateWhatsAppLink("reminder")}
+                  disabled={!generateWhatsAppLink("reminder", nextAppointment)}
                 >
                   <Bell className="h-4 w-4" />
                   Enviar lembrete
@@ -430,37 +432,81 @@ const Home = () => {
           ) : (
             <div className="space-y-3">
               {todayAppointments.map((appointment) => (
-                <div
+                <Card
                   key={appointment.id}
-                  onClick={() => handleAppointmentClick(appointment.id)}
-                  className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                  className="p-4 border-border/50 hover:border-primary/50 transition-colors"
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
-                      <span className="text-xs font-medium text-primary">
-                        {appointment.appointment_time.substring(0, 5)}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium">
-                        {getClientName(appointment.client_id)}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        {getServiceName(appointment.service_id)}
-                      </p>
+                  <div 
+                    onClick={() => handleAppointmentClick(appointment.id)}
+                    className="cursor-pointer"
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex flex-col items-center justify-center w-12 h-12 rounded-lg bg-primary/10">
+                          <span className="text-xs font-medium text-primary">
+                            {appointment.appointment_time.substring(0, 5)}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium">
+                            {getClientName(appointment.client_id)}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            {getServiceName(appointment.service_id)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-primary">
+                          R$ {Number(appointment.price || 0).toFixed(2)}
+                        </p>
+                        <p className="text-xs text-muted-foreground capitalize">
+                          {appointment.status === "scheduled" ? "Agendado" : 
+                           appointment.status === "completed" ? "Concluído" : 
+                           appointment.status === "cancelled" ? "Cancelado" : appointment.status}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-primary">
-                      R$ {Number(appointment.price || 0).toFixed(2)}
-                    </p>
-                    <p className="text-xs text-muted-foreground capitalize">
-                      {appointment.status === "scheduled" ? "Agendado" : 
-                       appointment.status === "completed" ? "Concluído" : 
-                       appointment.status === "cancelled" ? "Cancelado" : appointment.status}
-                    </p>
-                  </div>
-                </div>
+                  
+                  {/* Botões de ação WhatsApp */}
+                  {(appointment.status === "scheduled" || appointment.status === "confirmed") && (
+                    <div className="flex gap-2 pt-3 border-t border-border/50">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          "flex-1 gap-2",
+                          isButtonClicked(appointment.id, "confirmation") && "opacity-50"
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleWhatsAppClick("confirmation", appointment.id);
+                        }}
+                        disabled={!generateWhatsAppLink("confirmation", appointment)}
+                      >
+                        <MessageCircle className="h-4 w-4" />
+                        Confirmar
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          "flex-1 gap-2",
+                          isButtonClicked(appointment.id, "reminder") && "opacity-50"
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleWhatsAppClick("reminder", appointment.id);
+                        }}
+                        disabled={!generateWhatsAppLink("reminder", appointment)}
+                      >
+                        <Bell className="h-4 w-4" />
+                        Lembrete
+                      </Button>
+                    </div>
+                  )}
+                </Card>
               ))}
             </div>
           )}
