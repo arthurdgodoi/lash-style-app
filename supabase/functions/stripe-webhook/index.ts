@@ -39,11 +39,43 @@ serve(async (req) => {
     const body = await req.text();
     logStep("Request body received", { bodyLength: body.length });
 
+    // Initialize Supabase admin client for logging
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
+    );
+
+    // Helper function to log to billing_events table
+    const logBillingEvent = async (
+      eventType: string,
+      stripeEventId: string,
+      payload: any,
+      userId?: string,
+      error?: string
+    ) => {
+      try {
+        await supabaseAdmin.from('billing_events').insert({
+          user_id: userId || null,
+          event_type: eventType,
+          stripe_event_id: stripeEventId,
+          payload: payload,
+          error: error || null,
+        });
+        logStep('Billing event logged', { eventType, stripeEventId, userId });
+      } catch (err) {
+        logStep('ERROR logging to billing_events', { error: err });
+      }
+    };
+
     // Verify the webhook signature
     let event: Stripe.Event;
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
       logStep("Signature verified", { eventType: event.type, eventId: event.id });
+      
+      // Log event to billing_events (we'll get user_id later in specific handlers)
+      await logBillingEvent(event.type, event.id, event.data.object);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       logStep("Signature verification failed", { error: errorMessage });

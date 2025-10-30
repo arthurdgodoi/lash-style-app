@@ -272,6 +272,60 @@ const Perfil = () => {
 
           <Card>
             <CardHeader>
+              <CardTitle>Segurança e Dados</CardTitle>
+              <CardDescription>
+                Faça backup dos seus dados regularmente
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Exporte todos os seus dados (clientes, serviços, agendamentos, despesas) em formato JSON para backup.
+              </p>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  try {
+                    toast({
+                      title: "Exportando dados...",
+                      description: "Aguarde enquanto preparamos seu arquivo",
+                    });
+                    
+                    const { data, error } = await supabase.functions.invoke('export-user-data');
+                    
+                    if (error) throw error;
+                    
+                    // Create download link
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `meus-dados-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    toast({
+                      title: "Dados exportados",
+                      description: "O arquivo foi baixado com sucesso",
+                    });
+                  } catch (error: any) {
+                    toast({
+                      title: "Erro ao exportar",
+                      description: error.message,
+                      variant: "destructive",
+                    });
+                  }
+                }}
+                className="w-full"
+              >
+                📥 Exportar Meus Dados
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Ações</CardTitle>
             </CardHeader>
             <CardContent>

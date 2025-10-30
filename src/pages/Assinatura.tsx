@@ -257,12 +257,18 @@ const Assinatura = () => {
         )}
 
         {/* Título */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
+          <Badge className="mb-4 bg-primary/10 text-primary hover:bg-primary/20">
+            🚀 Lançamento Beta
+          </Badge>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Escolha seu plano
+            Oferta Especial de Lançamento
           </h2>
-          <p className="text-muted-foreground text-lg">
-            Comece grátis por 14 dias. Cancele quando quiser.
+          <p className="text-muted-foreground text-lg mb-2">
+            R$ 49,90/mês para os <strong>primeiros 50 usuários</strong>
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Depois: R$ 59,90/mês · Seu preço nunca muda depois de assinar
           </p>
         </div>
 
@@ -323,10 +329,24 @@ const Assinatura = () => {
         {/* Garantia */}
         <Card className="border-border/50 bg-muted/50">
           <CardContent className="pt-6 text-center">
-            <h3 className="font-semibold text-lg mb-2">Garantia de 14 dias</h3>
-            <p className="text-muted-foreground">
-              Experimente qualquer plano sem riscos. Se não gostar, devolvemos seu dinheiro.
+            <h3 className="font-semibold text-lg mb-2">🎁 Garantia de 14 dias grátis</h3>
+            <p className="text-muted-foreground mb-4">
+              Experimente sem riscos. Cancele quando quiser durante o trial.
             </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="flex items-center justify-center gap-2">
+                <Check className="w-4 h-4 text-primary" />
+                <span>Sem cartão de crédito</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <Check className="w-4 h-4 text-primary" />
+                <span>Cancele quando quiser</span>
+              </div>
+              <div className="flex items-center justify-center gap-2">
+                <Check className="w-4 h-4 text-primary" />
+                <span>Preço fixo garantido</span>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </main>
