@@ -1,0 +1,395 @@
+// Schema de Banco de Dados - Sistema de Agendamento para Profissionais de Beleza
+// Este arquivo documenta a estrutura completa do banco de dados e seus relacionamentos
+// Nota: Este é um arquivo de documentação. O projeto usa Supabase/PostgreSQL diretamente.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// AUTENTICAÇÃO E PERFIS
+// ============================================================================
+
+/// Perfil do profissional/usuário
+/// Relaciona-se 1:1 com auth.users do Supabase
+/// Armazena informações do profissional e configurações de agendamento público
+model profiles {
+  id                 String    @id @db.Uuid // Referencia auth.users(id)
+  full_name          String    @db.Text
+  phone              String?   @db.Text
+  professional_name  String?   @db.Text // Nome profissional exibido publicamente
+  location           String?   @db.Text // Localização do salão/estúdio
+  pix_key            String?   @db.Text // Chave PIX para pagamentos
+  booking_enabled    Boolean   @default(false) // Habilita agendamento público
+  booking_slug       String?   @unique @db.Text // URL personalizada para agendamento
+  created_at         DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime  @default(now()) @db.Timestamptz(6)
+}
+
+// ============================================================================
+// GESTÃO DE CLIENTES
+// ============================================================================
+
+/// Cadastro de clientes do profissional
+/// Soft delete implementado (deleted_at)
+model clients {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String        @db.Uuid // Profissional que cadastrou o cliente
+  name         String        @db.Text
+  phone        String?       @db.Text
+  email        String?       @db.Text
+  birth_date   DateTime?     @db.Date
+  notes        String?       @db.Text // Observações sobre preferências, histórico
+  created_at   DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime      @default(now()) @db.Timestamptz(6)
+  deleted_at   DateTime?     @db.Timestamptz(6)
+
+  // Relacionamentos
+  appointments appointments[]
+
+  @@index([user_id])
+  @@index([deleted_at])
+}
+
+// ============================================================================
+// CATÁLOGO DE SERVIÇOS
+// ============================================================================
+
+/// Serviços oferecidos pelo profissional
+/// Soft delete implementado (deleted_at)
+model services {
+  id                       String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                  String        @db.Uuid
+  name                     String        @db.Text
+  duration_minutes         Int           // Duração em minutos
+  price_mode               String        @db.Text // 'fixed' ou 'variable'
+  suggested_price          Decimal?      @db.Decimal // Preço sugerido (pode variar no agendamento)
+  include_salon_percentage Boolean       @default(false) // Se inclui repasse de salão
+  salon_percentage         Decimal?      @db.Decimal // Percentual de repasse
+  is_active                Boolean       @default(true)
+  created_at               DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime      @default(now()) @db.Timestamptz(6)
+  deleted_at               DateTime?     @db.Timestamptz(6)
+
+  // Relacionamentos
+  appointments appointments[]
+
+  @@index([user_id])
+  @@index([deleted_at])
+  @@index([is_active])
+}
+
+// ============================================================================
+// AGENDAMENTOS
+// ============================================================================
+
+/// Agendamentos realizados
+/// Sistema de status: scheduled -> confirmed -> completed
+/// Soft delete implementado (deleted_at)
+model appointments {
+  id                       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                  String    @db.Uuid // Profissional
+  client_id                String    @db.Uuid
+  service_id               String    @db.Uuid
+  appointment_date         DateTime  @db.Date
+  appointment_time         DateTime  @db.Time(6)
+  status                   String    @default("scheduled") @db.Text // scheduled, confirmed, completed, cancelled
+  price                    Decimal   @db.Decimal // Preço final cobrado
+  include_salon_percentage Boolean   @default(false)
+  salon_percentage         Decimal?  @db.Decimal
+  payment_status           String?   @default("pending") @db.Text // pending, paid
+  payment_method           String?   @db.Text // Dinheiro, Cartão, PIX
+  notes                    String?   @db.Text
+  created_at               DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at               DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at               DateTime? @db.Timestamptz(6)
+
+  // Relacionamentos
+  client  clients  @relation(fields: [client_id], references: [id])
+  service services @relation(fields: [service_id], references: [id])
+
+  @@index([user_id])
+  @@index([client_id])
+  @@index([service_id])
+  @@index([appointment_date])
+  @@index([status])
+  @@index([deleted_at])
+  @@index([payment_status, user_id], name: "idx_appointments_payment_status")
+}
+
+// ============================================================================
+// GESTÃO DE HORÁRIOS
+// ============================================================================
+
+/// Horário de expediente do profissional por dia da semana
+/// day_of_week: 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+model working_hours {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String   @db.Uuid
+  day_of_week Int      // 0-6 (Domingo a Sábado)
+  start_time  DateTime @db.Time(6)
+  end_time    DateTime @db.Time(6)
+  is_active   Boolean  @default(true)
+  created_at  DateTime @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([user_id])
+  @@index([day_of_week])
+  @@index([is_active])
+}
+
+/// Horários disponíveis para agendamento público
+/// Define os slots de tempo que aparecem no formulário de agendamento
+model booking_time_slots {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String   @db.Uuid
+  time_slot  DateTime @db.Time(6) // Ex: 09:00, 09:30, 10:00
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  updated_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([user_id])
+  @@index([is_active])
+}
+
+/// Bloqueios de horários (férias, folgas, intervalos)
+/// Soft delete implementado (deleted_at)
+model blocked_slots {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String    @db.Uuid
+  blocked_date DateTime  @db.Date
+  blocked_time DateTime? @db.Time(6) // NULL = dia inteiro bloqueado
+  is_full_day  Boolean   @default(false)
+  reason       String?   @db.Text
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at   DateTime? @db.Timestamptz(6)
+
+  @@index([user_id])
+  @@index([blocked_date])
+  @@index([deleted_at])
+}
+
+// ============================================================================
+// FINANCEIRO
+// ============================================================================
+
+/// Despesas e custos fixos/variáveis
+/// Soft delete implementado (deleted_at)
+model expenses {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String    @db.Uuid
+  description  String    @db.Text
+  amount       Decimal   @db.Decimal
+  payment_date DateTime  @db.Date
+  is_fixed     Boolean   @default(false) // Despesa fixa recorrente ou variável
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at   DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at   DateTime? @db.Timestamptz(6)
+
+  @@index([user_id])
+  @@index([payment_date])
+  @@index([deleted_at])
+}
+
+// ============================================================================
+// COMUNICAÇÃO
+// ============================================================================
+
+/// Templates de mensagens WhatsApp
+/// template_type: 'confirmation', 'reminder', 'custom'
+model message_templates {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String   @db.Uuid
+  template_type String   @db.Text
+  message       String   @db.Text // Suporta variáveis: {client_name}, {date}, {time}, {service}
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([user_id])
+  @@index([template_type])
+}
+
+/// Notificações no sistema
+model notifications {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String   @db.Uuid
+  title      String   @db.Text
+  message    String   @db.Text
+  is_read    Boolean  @default(false)
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([user_id])
+  @@index([is_read])
+  @@index([created_at])
+}
+
+// ============================================================================
+// ASSINATURAS E PAGAMENTOS (STRIPE)
+// ============================================================================
+
+/// Planos de assinatura disponíveis
+model subscription_plans {
+  id                         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                       String   @db.Text
+  description                String?  @db.Text
+  price_monthly              Decimal  @db.Decimal
+  price_yearly               Decimal? @db.Decimal
+  currency                   String   @default("BRL") @db.Text
+  stripe_product_id          String?  @db.Text
+  stripe_price_id            String   @db.Text
+  max_appointments_per_month Int?     // NULL = ilimitado
+  max_clients                Int?     // NULL = ilimitado
+  max_services               Int?     // NULL = ilimitado
+  features                   Json?    @default("[]") // Array de features
+  is_active                  Boolean  @default(true)
+  is_featured                Boolean  @default(false)
+  sort_order                 Int?     @default(0)
+  created_at                 DateTime @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime @default(now()) @db.Timestamptz(6)
+
+  // Relacionamentos
+  subscriptions user_subscriptions[]
+
+  @@index([is_active])
+  @@index([sort_order])
+}
+
+/// Assinaturas dos usuários
+/// status: trialing, active, canceled, past_due, incomplete
+model user_subscriptions {
+  id                         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id                    String    @db.Uuid
+  plan_id                    String?   @db.Uuid
+  status                     String    @default("trialing") // Enum: trialing, active, canceled, past_due, incomplete
+  stripe_customer_id         String?   @db.Text
+  stripe_subscription_id     String?   @db.Text
+  stripe_payment_method_id   String?   @db.Text
+  trial_ends_at              DateTime? @db.Timestamptz(6)
+  current_period_start       DateTime? @db.Timestamptz(6)
+  current_period_end         DateTime? @db.Timestamptz(6)
+  canceled_at                DateTime? @db.Timestamptz(6)
+  appointments_used_this_month Int?    @default(0)
+  is_early_adopter           Boolean?  @default(false) // Primeiros 50 usuários
+  created_at                 DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime  @default(now()) @db.Timestamptz(6)
+
+  // Relacionamentos
+  plan subscription_plans? @relation(fields: [plan_id], references: [id])
+
+  @@index([user_id])
+  @@index([status])
+  @@index([stripe_customer_id])
+  @@index([stripe_subscription_id])
+}
+
+/// Log de eventos de cobrança (webhooks Stripe)
+model billing_events {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id          String?   @db.Uuid
+  event_type       String    @db.Text // invoice.paid, subscription.created, etc
+  stripe_event_id  String?   @db.Text
+  payload          Json?     // Dados completos do evento
+  processed_at     DateTime? @default(now()) @db.Timestamptz(6)
+  error            String?   @db.Text // Erros no processamento
+  created_at       DateTime  @default(now()) @db.Timestamptz(6)
+
+  @@index([user_id])
+  @@index([event_type])
+  @@index([stripe_event_id])
+}
+
+// ============================================================================
+// AUDITORIA E LOGS
+// ============================================================================
+
+/// Log de auditoria de ações críticas
+/// Registra DELETE, UPDATE em tabelas importantes
+model audit_logs {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String   @db.Uuid
+  table_name String   @db.Text
+  record_id  String   @db.Uuid
+  action     String   @db.Text // INSERT, UPDATE, DELETE
+  old_data   Json?    // Estado anterior do registro
+  new_data   Json?    // Novo estado do registro
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([user_id])
+  @@index([table_name])
+  @@index([record_id])
+  @@index([created_at])
+}
+
+/// Log de erros da aplicação
+model app_errors {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String?  @db.Uuid
+  error_message String   @db.Text
+  error_stack   String?  @db.Text
+  page_url      String?  @db.Text
+  user_agent    String?  @db.Text
+  metadata      Json?    // Informações adicionais contextuais
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+
+  @@index([user_id])
+  @@index([created_at])
+}
+
+// ============================================================================
+// RELACIONAMENTOS E FLUXO DE DADOS
+// ============================================================================
+
+/*
+RELACIONAMENTOS PRINCIPAIS:
+
+1. PROFISSIONAL (profiles.id = auth.users.id)
+   ├── clients (1:N)
+   ├── services (1:N)
+   ├── appointments (1:N)
+   ├── working_hours (1:N)
+   ├── booking_time_slots (1:N)
+   ├── blocked_slots (1:N)
+   ├── expenses (1:N)
+   ├── message_templates (1:N)
+   ├── notifications (1:N)
+   └── user_subscriptions (1:1)
+
+2. AGENDAMENTO (appointments)
+   ├── client_id → clients.id
+   ├── service_id → services.id
+   └── user_id → profiles.id
+
+3. ASSINATURA (user_subscriptions)
+   ├── user_id → profiles.id
+   └── plan_id → subscription_plans.id
+
+FLUXO DE NEGÓCIO:
+
+1. Cadastro:
+   auth.users → profiles → create_trial_subscription()
+
+2. Agendamento:
+   Cliente → appointments (scheduled) 
+   → WhatsApp confirmação 
+   → appointments (confirmed) 
+   → Realizado → appointments (completed)
+   → payment_status (pending/paid)
+
+3. Financeiro:
+   - Receitas: appointments (completed + paid)
+   - Custos: expenses
+   - Pendências: appointments (completed + pending)
+   - Cálculo de repasse: salon_percentage
+
+4. Limites de Assinatura:
+   check_subscription_limit() verifica:
+   - max_appointments_per_month
+   - max_clients
+   - max_services
+*/
